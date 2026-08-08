@@ -125,6 +125,8 @@ export default function AuthPage() {
         setErrorMsg('Invalid email or password. If you don\'t have an account yet, click "Create Account" above to sign up!')
       } else if (msg.includes('Email not confirmed') || err.code === 'email_not_confirmed') {
         setErrorMsg('Email not confirmed yet! Please check your email inbox to verify your account, or click "Instant Demo Access" below to log in immediately.')
+      } else if (msg.includes('Invalid API key') || msg.includes('API key')) {
+        setErrorMsg('Supabase API key is missing or invalid in deployment settings. Click "Instant Demo Access" below to log in immediately!')
       } else {
         setErrorMsg(msg || 'Authentication failed. Please check your credentials.')
       }
@@ -171,6 +173,8 @@ export default function AuthPage() {
       const msg = err.message || ''
       if (msg.includes('is invalid') || err.code === 'email_address_invalid') {
         setErrorMsg('Supabase rejected this email domain. Please use a valid email format (e.g. name@gmail.com).')
+      } else if (msg.includes('Invalid API key') || msg.includes('API key')) {
+        setErrorMsg('Supabase API key is missing or invalid in deployment settings. Click "Instant Demo Access" below to log in immediately!')
       } else {
         setErrorMsg(msg || 'Sign up failed. Please check your email and password.')
       }
