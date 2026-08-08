@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimCLR & MoCo — Into the Algorithm</title>
+    <meta name="description" content="Master Self-Supervised Contrastive Learning (SimCLR & MoCo) with InfoNCE loss, temperature scaling tau, PyTorch code explainer, and real-time hypersphere alignment labs.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1" style="background: radial-gradient(circle, #06b6d4 0%, transparent 70%);"></div>
+        <div class="orb orb-2" style="background: radial-gradient(circle, #3b82f6 0%, transparent 70%);"></div>
+        <div class="orb orb-3" style="background: radial-gradient(circle, #6366f1 0%, transparent 70%);"></div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🌐</span>
+            <span>SimCLR & MoCo</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Overview</a></li>
+            <li><a href="#theory">Theory</a></li>
+            <li><a href="#code">Python Code</a></li>
+            <li><a href="#sample">Sample Dataset</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- SECTION 1: HERO OVERVIEW -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Self-Supervised Contrastive Representation</p>
+                <h1 class="hero-title">
+                    <span class="title-line">SimCLR &</span>
+                    <span class="title-line accent" style="background: linear-gradient(135deg, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">MoCo (CONTRASTIVE)</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Learn rich visual representations without human labels by pulling augmented positive pairs together and repelling negative keys on a unit hypersphere.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: HOUSE OF KNOWLEDGE & THEORY -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Theory & Foundations</span>
+                <h2 class="section-title">House of Knowledge</h2>
+                <p class="section-desc">NT-Xent InfoNCE loss, temperature scaling \(\tau\), momentum queues, and alignment vs uniformity properties.</p>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>1. NT-Xent / InfoNCE Loss</h3>
+                    <p>Evaluates categorical cross-entropy over cosine similarities \(\text{sim}(u, v) = \frac{u^T v}{\|u\| \|v\|}\) across positive and negative pairs:</p>
+                    <div class="math-block">
+                        $$\ell_{i, j} = -\log \frac{\exp(\text{sim}(z_i, z_j) / \tau)}{\sum_{k=1}^{2N} \mathbb{I}_{[k \ne i]} \exp(\text{sim}(z_i, z_k) / \tau)}$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>2. Temperature Hyperparameter (\(\tau\))</h3>
+                    <p>Controls hardness of negative mining. Lower \(\tau\) emphasizes nearest hard negative repulsions, sharpening hypersphere cluster boundaries:</p>
+                    <div class="math-block">
+                        $$\tau \in [0.05, 0.5] \implies \text{Gradient Weight} \propto \exp(\text{sim}/\tau)$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🔄</div>
+                    <h3>3. MoCo Momentum Queue (\(K\))</h3>
+                    <p>Decouples dictionary size from batch size using a FIFO memory queue \(K=65,536\) updated via exponential moving average (\(m=0.999\)):</p>
+                    <div class="math-block">
+                        $$\theta_k \leftarrow m \theta_k + (1 - m) \theta_q$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🛡️</div>
+                    <h3>4. Alignment & Uniformity</h3>
+                    <p>Representation quality is governed by positive pair closeness (Alignment) and uniform distribution over unit sphere \(\mathbb{S}^d\) (Uniformity):</p>
+                    <div class="math-block">
+                        $$\mathcal{L}_{align} = \mathbb{E} \|z_i - z_j\|^2, \quad \mathcal{L}_{uniform} = \log \mathbb{E} \exp(-2\|z_i - z_k\|^2)$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why is Non-Linear Projection Head \(g(z)\) critical?</h4>
+                        <p>SimCLR drops projection head \(g(z)\) during downstream transfer! The projection head discards fine-grained transformation variance, allowing encoder \(f(x)\) to retain richer features.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Why does SimCLR require gigantic batch sizes (4096)?</h4>
+                        <p>InfoNCE requires many negative keys to prevent representation collapse. MoCo circumvents large batch size requirements by maintaining an explicit dynamic memory queue.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: SimCLR vs MoCo v2 vs BYOL</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Negative Samples Required?</th>
+                            <th>Key Mechanism</th>
+                            <th>Batch Size Sensitivity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>SimCLR (v1/v2)</strong></td>
+                            <td>Yes (In-batch negatives)</td>
+                            <td>NT-Xent Loss + Non-linear Head</td>
+                            <td>High (Requires 2048 - 4096)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MoCo (v1/v2/v3)</strong></td>
+                            <td>Yes (Memory Queue)</td>
+                            <td>Momentum Encoder + FIFO Queue</td>
+                            <td>Low (Works on batch size 256)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>BYOL / SwAV</strong></td>
+                            <td>No (Non-contrastive)</td>
+                            <td>Predictor + Target EMA Decay</td>
+                            <td>Low (Asymmetric collapse prevention)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SECTION 3: INTERACTIVE LINE-BY-LINE CODE EXPLAINER -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / PyTorch Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(6,182,212,0.15); border:1px solid #06b6d4; color:#06b6d4; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">simclr_pytorch.py • PyTorch 2.1</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive"></div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Projection Head (L1–6)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Cosine Matrix (L7–11)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Masking & Tau (L12–17)</button>
+                    <button class="code-tab-btn" data-step="step4">4. InfoNCE Loss (L18–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: SAMPLE DATASET & DEMO -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Sample Dataset & Pretraining Fit</h2>
+                <p class="section-desc">Track InfoNCE loss convergence and downstream Linear Probe accuracy.</p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose Pretraining Dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="stl10">🏞️ STL-10 Unlabeled (100k Images)</option>
+                    <option value="cifar100">🖼️ CIFAR-100 Unsupervised</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="trainSampleBtn">Pretrain 1 Epoch</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Contrastive Embedding Pair Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>Image Pair</th><th>Augmentation 1</th><th>Augmentation 2</th><th>Cosine Sim</th><th>InfoNCE Loss</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics">
+                <div class="metric-card glass-card"><span class="metric-label">Epoch</span><span class="metric-value" id="metricEpoch">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">InfoNCE Loss</span><span class="metric-value" id="metricInfoNCE">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Avg Positive Sim</span><span class="metric-value" id="metricPosSim">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Linear Probe Acc</span><span class="metric-value" id="metricProbeAcc">—</span></div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts">
+                <div class="chart-card glass-card">
+                    <h4>InfoNCE Loss & Alignment Curve</h4>
+                    <canvas id="chartLoss"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Downstream Linear Probe Accuracy</h4>
+                    <canvas id="chartProbe"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: INTERACTIVE VISUAL PLAYGROUND -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Lab</span>
+                <h2 class="section-title">Hypersphere \(\mathbb{S}^1\) Unit Circle Playground</h2>
+                <p class="section-desc">Watch positive pairs attract while negative views push apart uniformly around the unit circle under temperature \(\tau\).</p>
+            </div>
+
+            <div class="playground-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:1.5rem;">
+                <div class="glass-card" style="padding:1rem;">
+                    <canvas id="simclrCanvas" width="650" height="500" style="width:100%; border-radius:10px; background:#0b0f19; cursor:crosshair;"></canvas>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">Click canvas to add positive pair anchor.</span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-sm btn-outline" id="btnStepOpt">⚡ Step Contrastive Opt</button>
+                            <button class="btn btn-sm btn-outline" id="btnResetPlayground">🔄 Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding:1.25rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem;">Control Panel</h3>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Temperature (\(\tau\)):</span>
+                            <span id="valTau" style="font-weight:700; color:#06b6d4;">0.15</span>
+                        </div>
+                        <input type="range" id="sliderTau" min="0.02" max="0.80" step="0.01" value="0.15" style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Augmentation Noise:</span>
+                            <span id="valNoise" style="font-weight:700; color:#3b82f6;">0.20</span>
+                        </div>
+                        <input type="range" id="sliderNoise" min="0.05" max="0.60" step="0.05" value="0.20" style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Presets:</label>
+                        <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="clustered">🔵 3 Image Classes</button>
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="uniform">🌐 Random Uniform</button>
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(0,0,0,0.3); padding:0.85rem; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Alignment Metric: <strong id="lblAlign" style="color:#06b6d4;">0.042</strong></div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">Uniformity Metric: <strong id="lblUniform" style="color:#3b82f6;">-2.14</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container" style="text-align:center; padding:2rem 0; color:var(--text-secondary); font-size:0.85rem;">
+            Into the Algorithm • SimCLR & MoCo Visual Guide
+        </div>
+    </footer>
+
+    <script src="simclr-moco-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

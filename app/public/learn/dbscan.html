@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBSCAN Clustering — Interactive Visual Guide & House of Knowledge</title>
+    <meta name="description" content="Master DBSCAN Density-Based Clustering interactively with Epsilon (eps) radiuses, MinPts thresholds, Core Points, Border Points, Noise Outliers, Python code explainer, and live playgrounds.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .db-accent { color: #f59e0b; }
+        .db-gradient { 
+            background: linear-gradient(135deg, #fbbf24, #f59e0b); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .db-btn { 
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35) !important;
+        }
+        .db-btn:hover { 
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5) !important; 
+            transform: translateY(-2px);
+        }
+
+        .code-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #060913;
+            margin-top: 1rem;
+        }
+        .code-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0a0e1a;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .code-dot-group {
+            display: flex;
+            gap: 6px;
+        }
+        .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27c93f; }
+        .code-header-title {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .code-block-interactive {
+            background: #060913;
+            padding: 1rem 0;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.8;
+            color: #e6edf3;
+            overflow-x: auto;
+            margin: 0;
+        }
+        .code-line {
+            display: flex;
+            padding: 0.25rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            border-left: 3px solid transparent;
+        }
+        .code-line:hover, .code-line.active {
+            background: rgba(251, 191, 36, 0.15);
+            border-left-color: #fbbf24;
+        }
+        .code-line.locked {
+            background: rgba(251, 191, 36, 0.28) !important;
+            border-left: 4px solid #fbbf24 !important;
+            box-shadow: inset 0 0 12px rgba(251, 191, 36, 0.2);
+        }
+        .line-num {
+            width: 30px;
+            color: #4b5563;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-right: 1.25rem;
+            flex-shrink: 0;
+        }
+        .line-content {
+            white-space: pre;
+            flex: 1;
+        }
+
+        .code-step-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .code-tab-btn {
+            padding: 0.5rem 0.85rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .code-tab-btn:hover, .code-tab-btn.active {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.4);
+            color: #fbbf24;
+        }
+
+        .code-explanation-panel {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            margin-top: 0.5rem;
+        }
+        .explain-line-badge {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.15);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .explain-header h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 0.5rem 0;
+        }
+        .explain-body {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 0.85rem;
+        }
+        .explain-math-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: #fbbf24;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .code-keyword { color: #ff7b72; font-weight: 600; }
+        .code-func { color: #d2a8ff; }
+        .code-comment { color: #8b949e; font-style: italic; }
+        .code-string { color: #a5d6ff; }
+        .code-num { color: #79c0ff; }
+
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.88rem;
+        }
+        .comp-table th, .comp-table td {
+            padding: 0.85rem 1.1rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .comp-table th { background: rgba(251, 191, 36, 0.12); color: #fbbf24; font-weight: 700; }
+        .comp-table td { color: var(--text-secondary); }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+        .faq-card {
+            padding: 1.25rem;
+            border-radius: var(--radius-sm);
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid var(--border);
+        }
+        .faq-card h4 { margin: 0 0 0.5rem; font-size: 0.98rem; color: #fbbf24; }
+        .faq-card p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+        #heroCanvas {
+            border-radius: var(--radius);
+            background: rgba(17, 24, 39, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .db-lab-wrapper {
+            display: flex;
+            gap: 2rem;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        .db-canvas-panel {
+            flex: 1;
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .db-canvas-container {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(17, 24, 39, 0.65);
+        }
+        .db-canvas-container canvas {
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+        }
+        .canvas-tooltip {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #ffffff;
+            background: rgba(10, 14, 26, 0.85);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .db-controls-sidebar {
+            width: 330px;
+            min-width: 290px;
+        }
+
+        .control-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(16px);
+        }
+        .control-block h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .slider-group {
+            margin-bottom: 1.25rem;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+        .slider-val {
+            font-family: var(--font-mono);
+            color: #fbbf24;
+            font-weight: 700;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            accent-color: #fbbf24;
+            cursor: pointer;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .preset-btn {
+            padding: 0.55rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: var(--radius-xs);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preset-btn:hover, .preset-btn.active {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.4);
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animated Neural Mesh Canvas -->
+    <canvas id="neuralBgCanvas" style="position:fixed; inset:0; z-index:-2; pointer-events:none;"></canvas>
+
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🌌</span>
+            <span>DBSCAN Clustering</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory & Knowledge</a></li>
+            <li><a href="#faq">Interview & Guidelines</a></li>
+            <li><a href="#code">Python Code Explainer</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/quest">ML Quest</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Unsupervised Learning · Density-Based Clustering</p>
+                <h1 class="hero-title">
+                    <span class="title-line">DBSCAN SPATIAL</span>
+                    <span class="title-line db-gradient">DENSITY CLUSTERING</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Discover arbitrary non-convex cluster shapes, Core Points, Border Points, and explicit Noise/Outlier filtering through interactive Epsilon ($\varepsilon$) expansion visualizers.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary db-btn">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground Below ↓</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="380"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : HOUSE OF KNOWLEDGE (THEORY & MATH)
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Mathematical Foundations</span>
+                <h2 class="section-title">DBSCAN: The House of Knowledge</h2>
+                <p class="section-desc">
+                    Master density reachability, Epsilon neighborhoods ($N_\varepsilon$), MinPts thresholds, and automatic outlier rejection without pre-specifying $K$.
+                </p>
+            </div>
+
+            <!-- Beginner Intuition & ELI5 Analogy Card -->
+            <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(251, 191, 36, 0.3); padding: 1.75rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">💡</span>
+                    <h3 style="margin:0; font-size:1.25rem; color:#fbbf24;">DBSCAN Clustering for Beginners (Explain Like I'm 5)</h3>
+                </div>
+                <p style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem; margin-bottom:1.25rem;">
+                    Imagine looking down at a crowded stadium floor. 
+                    If someone has at least 4 people standing inside their personal bubble circle ($\varepsilon$), they are a <strong>Core Crowd Point</strong>. 
+                    <strong>DBSCAN connects overlapping crowds to find clusters of ANY wild shape (like moons or spirals), while kicking isolated lone points out as Noise (-1)!</strong>
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#34d399; font-weight:700;">🌟 1. Core Points</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Points surrounded by at least $\text{MinPts}$ neighbors within radius $\varepsilon$. These form the glowing dense center of clusters.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#60a5fa; font-weight:700;">🔵 2. Border Points</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Points within $\varepsilon$ of a Core Point, but having fewer than $\text{MinPts}$ neighbors themselves. They form cluster edges.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#f87171; font-weight:700;">🚫 3. Noise Outliers (-1)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Isolated points far away from any Core Point. DBSCAN automatically labels them $-1$ without forcing them into a cluster!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="theory-grid">
+                <!-- 1. Epsilon Neighborhood -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⭕</div>
+                    <h3>1. $\varepsilon$-Neighborhood ($N_\varepsilon$)</h3>
+                    <p>
+                        The set of all points within Euclidean radius distance $\varepsilon$ of point $p$:
+                    </p>
+                    <div style="background:rgba(251,191,36,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(251,191,36,0.25); color:#fbbf24; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$N_\varepsilon(p) = \{ q \in \mathcal{D} \mid d(p, q) \le \varepsilon \}$$
+                    </div>
+                </div>
+
+                <!-- 2. Core Point Condition -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🌟</div>
+                    <h3>2. Core Point Classification</h3>
+                    <p>
+                        Point $p$ is a Core Point if its $\varepsilon$-neighborhood contains at least $\text{MinPts}$ points:
+                    </p>
+                    <div style="background:rgba(52,211,153,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(52,211,153,0.25); color:#34d399; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$|N_\varepsilon(p)| \ge \text{MinPts}$$
+                    </div>
+                </div>
+
+                <!-- 3. Direct Density Reachability -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>3. Density Reachability & Chain</h3>
+                    <p>
+                        Point $q$ is directly density-reachable from $p$ if $q \in N_\varepsilon(p)$ and $p$ is a Core Point:
+                    </p>
+                    <div style="background:rgba(96,165,250,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(96,165,250,0.25); color:#60a5fa; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$p_1 \to p_2 \to \dots \to p_k \quad (\text{Chain of Core Points})$$
+                    </div>
+                </div>
+
+                <!-- 4. Border vs Noise Outliers -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🚫</div>
+                    <h3>4. Border Points & Noise Rejection</h3>
+                    <p>
+                        Border Points are within $\varepsilon$ of a Core Point but have $< \text{MinPts}$ neighbors. Outliers are assigned label $-1$:
+                    </p>
+                    <div style="background:rgba(248,113,113,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(248,113,113,0.25); color:#f87171; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\text{Label}(p) = -1 \quad (\text{Noise / Outlier})$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interview & Production Deep-Dive -->
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why doesn't DBSCAN require specifying cluster count K?</h4>
+                        <p>DBSCAN discovers clusters dynamically based on local spatial point density. Clusters grow naturally wherever point density exceeds $\text{MinPts} / \pi \varepsilon^2$.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: How to select optimal Epsilon ($\varepsilon$) and MinPts?</h4>
+                        <p>A standard rule of thumb is setting $\text{MinPts} = 2 \times \text{Dimensions}$ (e.g. $\text{MinPts}=4$ for 2D). Epsilon is chosen using the knee point of a sorted $k$-distance graph.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Can DBSCAN cluster datasets with varying densities?</h4>
+                        <p>Standard DBSCAN struggles when clusters have significantly different densities. HDBSCAN (Hierarchical DBSCAN) solves this by building a hierarchy over varying epsilon densities.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Computational Complexity Summary</h4>
+                        <p><strong>Naive Neighbor Query:</strong> $\mathcal{O}(N^2)$ runtime.<br><strong>Indexed (KD-Tree / R-Tree):</strong> $\mathcal{O}(N \log N)$ runtime.<br><strong>Storage:</strong> $\mathcal{O}(N)$ memory space.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: DBSCAN vs K-Means vs Hierarchical</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Cluster Geometry</th>
+                            <th>Noise / Outlier Handling</th>
+                            <th>Parameter Input</th>
+                            <th>Best Used For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>DBSCAN</strong></td>
+                            <td>Arbitrary Non-Convex (Moons, Rings)</td>
+                            <td>Explicit (-1 Noise Labels)</td>
+                            <td>Radius $\varepsilon$ & MinPts</td>
+                            <td>Spatial GPS data, non-linear shapes & anomaly detection.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>K-Means</strong></td>
+                            <td>Convex / Spherical</td>
+                            <td>Distorts Centroids</td>
+                            <td>Cluster Count $K$</td>
+                            <td>Large tabular data with compact spherical clusters.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hierarchical</strong></td>
+                            <td>Nested Tree Dendrogram</td>
+                            <td>Isolated Tree Leaves</td>
+                            <td>Tree Cut Height / $K$</td>
+                            <td>Taxonomic classification & multi-scale tree structures.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Interactive Line-by-Line Python Code Explainer -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / NumPy Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(251,191,36,0.15); border:1px solid #fbbf24; color:#fbbf24; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <!-- Full-Width Code Container -->
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">dbscan_scratch.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Step Preset Selectors Below Code -->
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Class Setup & Parameters (L1–7)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Region Query (L8–12)</button>
+                    <button class="code-tab-btn" data-step="step3">3. BFS Cluster Expansion (L13–18)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Noise Classification (L19–22)</button>
+                </div>
+
+                <!-- Interactive Explanation Panel Below Code Container -->
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel">
+                    <div>
+                        <div class="explain-header">
+                            <span class="explain-line-badge" id="explainLineBadge">Line 4</span>
+                            <h4 id="explainTitle">DBSCAN Constructor</h4>
+                        </div>
+                        <p class="explain-body" id="explainBody">
+                            Hover or click any line of code above to inspect its line-by-line breakdown.
+                        </p>
+                    </div>
+                    <div class="explain-math-box" id="explainMathBox">
+                        $$\varepsilon = 0.5, \quad \\text{min\\_samples} = 5$$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET & DEMO
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Live Demonstration</span>
+                <h2 class="section-title">Sample Dataset Density Fit & Model Demo</h2>
+                <p class="section-desc">
+                    Explore how DBSCAN clusters spatial data points and detects outliers without prior $K$ knowledge.
+                </p>
+            </div>
+
+            <!-- Dataset Selector -->
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose a spatial dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="gps">📡 GPS Spatial Locations (Urban Clusters & Noise)</option>
+                    <option value="moons">🌀 Two Interlocking Moons (Non-Convex Shape)</option>
+                    <option value="rings">🎯 Concentric Density Rings</option>
+                </select>
+                <button class="btn btn-primary btn-sm db-btn" id="trainSampleBtn">Run DBSCAN Clustering</button>
+            </div>
+
+            <!-- Data Table -->
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Dataset Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>#</th><th>Coordinate X₁</th><th>Coordinate X₂</th><th>DBSCAN Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Metrics Dashboard -->
+            <div class="metrics-dashboard" id="sampleMetrics" style="display:none;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Discovered Clusters</span>
+                    <span class="metric-value" id="sampleMetricK" style="color:#fbbf24;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Core Points</span>
+                    <span class="metric-value" id="sampleMetricCore" style="color:#34d399;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Border Points</span>
+                    <span class="metric-value" id="sampleMetricBorder" style="color:#60a5fa;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Noise Outliers (-1)</span>
+                    <span class="metric-value" id="sampleMetricNoise" style="color:#f87171;">—</span>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid" id="sampleCharts" style="display:none;">
+                <div class="chart-card glass-card">
+                    <h4>Density Clustered Coordinates Scatter</h4>
+                    <canvas id="sampleScatterChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Point Type Composition Breakdown</h4>
+                    <canvas id="sampleCompositionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Visual Simulation</span>
+                <h2 class="section-title">DBSCAN Density Playground & Epsilon Visualizer</h2>
+                <p class="section-desc">
+                    Plot custom 2D data points, adjust Epsilon radius ($\varepsilon$) and $\text{MinPts}$, toggle $\varepsilon$-circles, and watch Core Points, Border Points, and Noise Outliers update live!
+                </p>
+            </div>
+
+            <div class="db-lab-wrapper">
+                <!-- Left Interactive 2D Canvas -->
+                <div class="db-canvas-panel">
+                    <div class="db-canvas-container">
+                        <canvas id="dbCanvas" width="600" height="460"></canvas>
+                        <div class="canvas-tooltip" id="canvasTooltip">
+                            <span>Mouse Position: (0.00, 0.00)</span>
+                            <span>•</span>
+                            <span style="color:#fbbf24;" id="densityLabel">Neighbors: 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Preset Datasets & Actions -->
+                    <div class="glass-card" style="padding:1.25rem;">
+                        <div class="preset-buttons" style="margin-top:0;">
+                            <button class="preset-btn active" data-preset="moons">🌀 Two Moons</button>
+                            <button class="preset-btn" data-preset="rings">🎯 Concentric Rings</button>
+                            <button class="preset-btn" data-preset="spirals">🌪️ Double Spiral</button>
+                            <button class="preset-btn" data-preset="noise">💥 High Noise Outliers</button>
+                        </div>
+                        <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+                            <button class="btn btn-outline btn-sm" id="btnClearPoints" style="width:100%; justify-content:center;">🗑️ Clear Canvas Points</button>
+                            <button class="btn btn-outline btn-sm" id="btnRandomizePoints" style="width:100%; justify-content:center;">🎲 Add Random Noise</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Controls Sidebar -->
+                <div class="db-controls-sidebar">
+                    <div class="control-block">
+                        <h3>⚡ Density Controls</h3>
+                        
+                        <!-- Epsilon Radius Slider -->
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Epsilon Radius ($\varepsilon$)</span>
+                                <span class="slider-val" id="valEps">45px</span>
+                            </div>
+                            <input type="range" id="sliderEps" min="15" max="100" value="45">
+                        </div>
+
+                        <!-- MinPts Threshold Slider -->
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>MinPts Threshold</span>
+                                <span class="slider-val" id="valMinPts">4</span>
+                            </div>
+                            <input type="range" id="sliderMinPts" min="2" max="10" value="4">
+                        </div>
+
+                        <!-- Draw Epsilon Circles Checkbox -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.25rem;">
+                            <span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Draw Core Epsilon Circles ($\varepsilon$)</span>
+                            <input type="checkbox" id="checkCircles" checked style="accent-color:#fbbf24; width:18px; height:18px; cursor:pointer;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics Dashboard -->
+            <div class="metrics-dashboard" style="margin-top:2rem;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Discovered Clusters ($K$)</span>
+                    <span class="metric-value" id="metricClusters" style="color:#fbbf24;">2</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Core Points</span>
+                    <span class="metric-value" id="metricCoreCount" style="color:#34d399;">38</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Border Points</span>
+                    <span class="metric-value" id="metricBorderCount" style="color:#60a5fa;">14</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Noise Outliers</span>
+                    <span class="metric-value" id="metricNoiseCount" style="color:#f87171;">8</span>
+                </div>
+            </div>
+
+            <!-- Playground Charts Grid -->
+            <div class="charts-grid" style="margin-top:2rem;">
+                <div class="chart-card glass-card">
+                    <h4>Point Type Composition Breakdown</h4>
+                    <canvas id="chartTypeComposition" height="220"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>K-Distance Graph (Sorted Epsilon Distances)</h4>
+                    <canvas id="chartKDistance" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser · <a href="main.html">Lab Hub</a></p>
+        </div>
+    </footer>
+
+    <script src="dbscan-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

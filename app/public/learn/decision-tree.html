@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Tree — Interactive Visual Guide & House of Knowledge</title>
+    <meta name="description" content="Learn Decision Trees interactively with animated decision boundary splitting, Gini impurity & entropy math, interactive tree hierarchy visualization, Python code, and custom dataset training.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .dt-accent { color: #10b981; }
+        .dt-gradient { background: linear-gradient(135deg, #10b981, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .dt-btn { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; }
+        .dt-btn:hover { box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4) !important; }
+
+        .code-block {
+            background: #060913;
+            border: none;
+            padding: 1.25rem 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.75;
+            color: #e6edf3;
+            overflow-x: auto;
+            white-space: pre !important;
+            word-break: normal;
+            tab-size: 4;
+            margin-top: 0.75rem;
+        }
+        .code-keyword { color: #ff7b72; font-weight: 600; }
+        .code-func { color: #d2a8ff; }
+        .code-comment { color: #8b949e; font-style: italic; }
+        .code-string { color: #a5d6ff; }
+        .code-num { color: #79c0ff; }
+
+        #heroCanvas {
+            border-radius: var(--radius);
+            background: rgba(17, 24, 39, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .dt-lab-wrapper {
+            display: flex;
+            gap: 2rem;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        .dt-canvas-panel {
+            flex: 1;
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .dt-canvas-container {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(17, 24, 39, 0.5);
+        }
+        .dt-canvas-container canvas {
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+        }
+        .canvas-tooltip {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            background: rgba(0,0,0,0.6);
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+            backdrop-filter: blur(8px);
+            pointer-events: none;
+        }
+        .dt-controls-sidebar {
+            width: 320px;
+            min-width: 280px;
+        }
+
+        .control-block {
+            margin-bottom: 1.5rem;
+        }
+        .control-block label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .control-block select,
+        .control-block input[type="range"] {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-xs);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: border-color var(--duration) var(--ease);
+        }
+        .control-block select:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+        .control-block select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .slider-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .slider-header .slider-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            color: #10b981;
+        }
+
+        .tree-viz-card {
+            margin-top: 2rem;
+            overflow-x: auto;
+            padding: 2rem;
+        }
+        .tree-container {
+            display: flex;
+            justify-content: center;
+            min-width: 600px;
+            padding: 1rem 0;
+        }
+        .tree-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tree-node {
+            background: rgba(17, 24, 39, 0.9);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            min-width: 140px;
+            color: var(--text-primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s var(--ease);
+        }
+        .tree-node.leaf {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .tree-node .node-feat { font-weight: 700; color: #fbbf24; margin-bottom: 0.25rem; font-size: 0.85rem; }
+        .tree-node .node-info { color: var(--text-muted); font-size: 0.75rem; }
+        .tree-node .node-val-box {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
+        }
+        .node-val-badge {
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.4);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .c0-text { color: #f87171; }
+        .c1-text { color: #60a5fa; }
+
+        .tree-branch {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            position: relative;
+        }
+        .tree-branch::before {
+            content: '';
+            position: absolute;
+            top: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 1.5rem;
+            background: var(--border);
+        }
+
+        @media (max-width: 900px) {
+            .dt-lab-wrapper { flex-direction: column; }
+            .dt-controls-sidebar { width: 100%; min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Ambient Background -->
+    <div class="ambient-bg">
+        <div class="orb orb-1" style="background: radial-gradient(circle, #10b981 0%, transparent 70%);"></div>
+        <div class="orb orb-2" style="background: radial-gradient(circle, #059669 0%, transparent 70%);"></div>
+        <div class="orb orb-3" style="background: radial-gradient(circle, #34d399 0%, transparent 70%);"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🌳</span>
+            <span>Decision Tree</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory & Knowledge</a></li>
+            <li><a href="#code">Python Code</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/quest">ML Quest</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Machine Learning Fundamentals</p>
+                <h1 class="hero-title">
+                    <span class="title-line">DECISION</span>
+                    <span class="title-line accent" style="background: linear-gradient(135deg, #10b981, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">TREE</span>
+                </h1>
+                <p class="hero-subtitle">
+                    The intuitive tree-based algorithm — watch how recursive feature splitting
+                    partitions feature space into axis-aligned decision regions.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary dt-btn">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try It Yourself</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : HOUSE OF KNOWLEDGE (THEORY)
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Deep Intuition & Mathematical Formulations</span>
+                <h2 class="section-title">Decision Trees: The House of Knowledge</h2>
+                <p class="section-desc">
+                    Master Decision Trees — from recursive binary partitioning and Gini/Entropy Impurity to Information Gain, Cost-Complexity Pruning, and Ensemble foundations.
+                </p>
+            </div>
+
+            <!-- Beginner Intuition & ELI5 Analogy Card -->
+            <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.75rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">💡</span>
+                    <h3 style="margin:0; font-size:1.25rem; color:#10b981;">Decision Trees for Beginners (Explain Like I'm 5)</h3>
+                </div>
+                <p style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem; margin-bottom:1.25rem;">
+                    Imagine playing <strong>20 Questions</strong> to guess an animal. You ask: <em>"Does it have feathers?"</em> → 
+                    If Yes, <em>"Can it fly?"</em> → If No, it's a <strong>Penguin!</strong> 
+                    <strong>A Decision Tree makes decisions in the exact same way: asking a chain of simple Yes/No questions about the data until it reaches a final answer!</strong>
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#10b981; font-weight:700;">🌱 Root & Internal Split Nodes</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Questions that divide the data into two branches (e.g. <em>"Is Age > 30?"</em>).</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#fbbf24; font-weight:700;">🍃 Leaf Nodes (Final Answers)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">The bottom-most endpoints where no more questions are asked, giving the final prediction label or average value.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#60a5fa; font-weight:700;">🧹 Impurity (Gini / Entropy)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Measures how mixed up a bucket is. Pure bucket (all same class) = 0 impurity. Split decisions pick questions that reduce impurity the most!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🌲</div>
+                    <h3>1. Recursive Space Partitioning</h3>
+                    <p>
+                        Decision trees partition feature space into non-overlapping axis-aligned hyper-rectangles using binary split decisions:
+                    </p>
+                    <div class="math-block">
+                        $$\text{Rule: } x_j \le t \quad \implies \quad R_1(j, t) \ \text{vs} \ R_2(j, t)$$
+                    </div>
+                    <p>Greedily picks feature \(j\) and threshold \(t\) maximizing purity reduction at each step.</p>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📊</div>
+                    <h3>2. Gini Impurity (CART)</h3>
+                    <p>
+                        Measures the probability of misclassifying a randomly chosen element from a node:
+                    </p>
+                    <div class="math-block">
+                        $$G(S) = 1 - \sum_{k=1}^{K} p_k^2$$
+                    </div>
+                    <p>For binary classification with class probability \(p\), \(G(p) = 2p(1-p)\). Max impurity occurs at \(p=0.5\) (\(G=0.5\)); pure nodes have \(G=0\).</p>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">💡</div>
+                    <h3>3. Entropy & Information Gain</h3>
+                    <p>
+                        <strong>Entropy \(H(S)\)</strong> quantifies information disorder in node \(S\):
+                    </p>
+                    <div class="math-block">
+                        $$H(S) = -\sum_{k=1}^{K} p_k \log_2(p_k)$$
+                    </div>
+                    <div class="math-block">
+                        $$IG(S, A) = H(S) - \sum_{v \in \text{children}} \frac{|S_v|}{|S|} H(S_v)$$
+                    </div>
+                    <p>C4.5 algorithm maximizes Information Gain (or Gain Ratio) to pick optimal feature splits.</p>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📈</div>
+                    <h3>4. Variance Reduction (Regression)</h3>
+                    <p>
+                        For regression trees predicting continuous targets, split selection minimizes target variance:
+                    </p>
+                    <div class="math-block">
+                        $$\text{Var}(S) = \frac{1}{|S|} \sum_{i \in S} (y_i - \bar{y}_S)^2$$
+                    </div>
+                    <p>Predicted value in leaf node \(R_m\) is the sample mean target \(\hat{c}_m = \text{avg}(y_i \in R_m)\).</p>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>5. Cost-Complexity Pruning</h3>
+                    <p>
+                        Unconstrained trees overfit by memoizing data. <strong>Cost-complexity pruning</strong> minimizes a cost function balancing tree size \(|T|\) and residual error:
+                    </p>
+                    <div class="math-block">
+                        $$R_\alpha(T) = R(T) + \alpha |T|$$
+                    </div>
+                    <p>where \(\alpha \ge 0\) is the complexity parameter controlling tree pruning aggressiveness.</p>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">👑</div>
+                    <h3>6. Ensembles Foundation</h3>
+                    <p>
+                        Single trees have high variance. Combining multiple trees builds state-of-the-art ensembles (Random Forest & Gradient Boosting).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Interactive Line-by-Line Python Code Explainer -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / NumPy Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">decision_tree_scratch.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Tree Node & Class (L1–7)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Gini Impurity (L8–12)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Recursive Splitting (L13–18)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Prediction Entry (L19–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET & DEMO
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Interactive Decision Boundary</h2>
+                <p class="section-desc">
+                    Adjust tree hyperparameters to see how depth and splitting criteria reshape
+                    the decision boundary and hierarchy in real-time.
+                </p>
+            </div>
+
+            <!-- Dataset Controls -->
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="moons">🌙 Moons</option>
+                    <option value="circles">⭕ Concentric Circles</option>
+                    <option value="blobs">🔵 Two Blobs</option>
+                    <option value="xor">✖️ XOR Pattern</option>
+                </select>
+                <label for="criterionSelect">Criterion:</label>
+                <select id="criterionSelect">
+                    <option value="gini">Gini Impurity</option>
+                    <option value="entropy">Entropy (Info Gain)</option>
+                </select>
+                <button class="btn btn-primary btn-sm dt-btn" id="regenerateBtn">🔄 Regenerate</button>
+            </div>
+
+            <!-- Main Interactive Lab -->
+            <div class="dt-lab-wrapper">
+                <div class="dt-canvas-panel">
+                    <div class="dt-canvas-container">
+                        <canvas id="dtCanvas" width="600" height="500"></canvas>
+                        <div class="canvas-tooltip">Decision regions updated live via tree predictions</div>
+                    </div>
+                </div>
+                <div class="dt-controls-sidebar glass-card">
+                    <div class="control-block">
+                        <div class="slider-header">
+                            <label style="margin-bottom:0;">Max Depth</label>
+                            <span class="slider-val" id="depthDisplay">4</span>
+                        </div>
+                        <input type="range" id="maxDepthSlider" min="1" max="8" step="1" value="4">
+                    </div>
+
+                    <div class="control-block">
+                        <div class="slider-header">
+                            <label style="margin-bottom:0;">Min Samples Split</label>
+                            <span class="slider-val" id="minSplitDisplay">4</span>
+                        </div>
+                        <input type="range" id="minSplitSlider" min="2" max="30" step="1" value="4">
+                    </div>
+
+                    <div class="control-block">
+                        <div class="slider-header">
+                            <label style="margin-bottom:0;">Noise Level</label>
+                            <span class="slider-val" id="noiseDisplay">0.15</span>
+                        </div>
+                        <input type="range" id="noiseSlider" min="0" max="0.5" step="0.05" value="0.15">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Dashboard -->
+            <div class="metrics-dashboard" style="margin-top: 2rem;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Accuracy</span>
+                    <span class="metric-value" id="metricAccuracy" style="color:#10b981;">0%</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Actual Depth</span>
+                    <span class="metric-value" id="metricDepth">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Leaf Nodes</span>
+                    <span class="metric-value" id="metricLeaves">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Criterion</span>
+                    <span class="metric-value" id="metricCrit" style="font-size:1rem;">Gini</span>
+                </div>
+            </div>
+
+            <!-- Tree Hierarchy Diagram -->
+            <div class="tree-viz-card glass-card">
+                <h3 style="margin-bottom:1rem; font-size:1.1rem; color:var(--text-primary);">🌴 Trained Tree Diagram Hierarchy</h3>
+                <div class="tree-container" id="treeVisualization"></div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid" style="margin-top: 2rem;">
+                <div class="chart-card glass-card">
+                    <h4>Tree Depth vs Accuracy</h4>
+                    <canvas id="depthAccChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Feature Importance</h4>
+                    <canvas id="featImportanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Experiment</span>
+                <h2 class="section-title">Try Your Own Dataset</h2>
+                <p class="section-desc">
+                    Upload a CSV file or enter labeled 2D points manually to train a decision tree live in browser.
+                </p>
+            </div>
+
+            <div class="playground-grid">
+                <!-- Input Panel -->
+                <div class="input-panel glass-card">
+                    <div class="input-tabs">
+                        <button class="tab-btn active" data-tab="csv">📁 Upload CSV</button>
+                        <button class="tab-btn" data-tab="manual">✏️ Manual Entry</button>
+                    </div>
+
+                    <!-- CSV Upload -->
+                    <div class="tab-content active" id="tab-csv">
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="upload-icon">📂</div>
+                            <p>Drag & drop a CSV file here</p>
+                            <span>or</span>
+                            <label class="btn btn-outline btn-sm" for="csvFileInput">
+                                Browse Files
+                            </label>
+                            <input type="file" id="csvFileInput" accept=".csv" hidden>
+                            <p class="upload-hint">Need three columns: X1, X2, and Label (0 or 1).</p>
+                        </div>
+                        <div id="csvPreview" style="display:none;">
+                            <div class="column-selectors">
+                                <div class="col-select">
+                                    <label for="x1ColSelect">X1 Column</label>
+                                    <select id="x1ColSelect"></select>
+                                </div>
+                                <div class="col-select">
+                                    <label for="x2ColSelect">X2 Column</label>
+                                    <select id="x2ColSelect"></select>
+                                </div>
+                                <div class="col-select">
+                                    <label for="labelColSelect">Label Column</label>
+                                    <select id="labelColSelect"></select>
+                                </div>
+                            </div>
+                            <div class="table-scroll" id="csvTablePreview"></div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Entry -->
+                    <div class="tab-content" id="tab-manual">
+                        <div class="manual-entry">
+                            <div class="manual-header">
+                                <div class="manual-labels">
+                                    <input type="text" id="x1Label" value="X1" placeholder="X1 label">
+                                    <input type="text" id="x2Label" value="X2" placeholder="X2 label">
+                                    <input type="text" value="Label" disabled style="opacity: 0.5;">
+                                </div>
+                            </div>
+                            <div class="manual-rows" id="manualRows"></div>
+                            <div class="manual-actions">
+                                <button class="btn btn-outline btn-sm" id="addRowBtn">+ Add Row</button>
+                                <button class="btn btn-outline btn-sm" id="clearRowsBtn">Clear All</button>
+                                <button class="btn btn-outline btn-sm" id="loadExampleBtn">Load Example</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg dt-btn" id="trainCustomBtn" style="margin-top:1.5rem;">
+                        🚀 Train Decision Tree
+                    </button>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="results-panel" id="customResults" style="display:none;">
+                    <div class="metrics-dashboard custom-metrics">
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">Accuracy</span>
+                            <span class="metric-value" id="cMetricAccuracy">—</span>
+                        </div>
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">Tree Depth</span>
+                            <span class="metric-value" id="cMetricDepth">—</span>
+                        </div>
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">Leaf Nodes</span>
+                            <span class="metric-value" id="cMetricLeaves">—</span>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid custom-charts">
+                        <div class="chart-card glass-card">
+                            <h4>Decision Boundary</h4>
+                            <canvas id="cScatterChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="prediction-tool glass-card">
+                        <h4>🔮 Classify a New Point</h4>
+                        <div class="predict-row">
+                            <label for="predictX1">X1:</label>
+                            <input type="number" id="predictX1" step="any" placeholder="e.g. 0.5">
+                            <label for="predictX2">X2:</label>
+                            <input type="number" id="predictX2" step="any" placeholder="e.g. 0.5">
+                            <button class="btn btn-primary btn-sm dt-btn" id="predictBtn">Classify</button>
+                        </div>
+                        <div class="predict-result" id="predictResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser</p>
+        </div>
+    </footer>
+
+    <!-- App Script & Lab Motion -->
+    <script src="decision-tree-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

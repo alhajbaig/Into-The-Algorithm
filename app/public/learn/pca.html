@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA (Principal Component Analysis) — Interactive Visual Guide & House of Knowledge</title>
+    <meta name="description" content="Master Principal Component Analysis (PCA) interactively with covariance matrices, eigenvectors, SVD math, explained variance ratio, interactive projection canvas, Python code explainer, and live playgrounds.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .pca-accent { color: #8b5cf6; }
+        .pca-gradient { 
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .pca-btn { 
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35) !important;
+        }
+        .pca-btn:hover { 
+            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.5) !important; 
+            transform: translateY(-2px);
+        }
+
+        /* ── Code Container & Interactive Line Explainer Styling ── */
+        .code-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #060913;
+            margin-top: 1rem;
+        }
+        .code-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0a0e1a;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .code-dot-group {
+            display: flex;
+            gap: 6px;
+        }
+        .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27c93f; }
+        .code-header-title {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .code-block-interactive {
+            background: #060913;
+            padding: 1rem 0;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.8;
+            color: #e6edf3;
+            overflow-x: auto;
+            margin: 0;
+        }
+        .code-line {
+            display: flex;
+            padding: 0.25rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            border-left: 3px solid transparent;
+        }
+        .code-line:hover, .code-line.active {
+            background: rgba(167, 139, 250, 0.15);
+            border-left-color: #a78bfa;
+        }
+        .code-line.locked {
+            background: rgba(167, 139, 250, 0.28) !important;
+            border-left: 4px solid #a78bfa !important;
+            box-shadow: inset 0 0 12px rgba(167, 139, 250, 0.2);
+        }
+        .line-num {
+            width: 30px;
+            color: #4b5563;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-right: 1.25rem;
+            flex-shrink: 0;
+        }
+        .line-content {
+            white-space: pre;
+            flex: 1;
+        }
+
+        .code-step-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .code-tab-btn {
+            padding: 0.5rem 0.85rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .code-tab-btn:hover, .code-tab-btn.active {
+            background: rgba(167, 139, 250, 0.15);
+            border-color: rgba(167, 139, 250, 0.4);
+            color: #a78bfa;
+        }
+
+        .code-explanation-panel {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            margin-top: 0.5rem;
+        }
+        .explain-line-badge {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #a78bfa;
+            background: rgba(167, 139, 250, 0.15);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .explain-header h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 0.5rem 0;
+        }
+        .explain-body {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 0.85rem;
+        }
+        .explain-math-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: #a78bfa;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .code-keyword { color: #ff7b72; font-weight: 600; }
+        .code-func { color: #d2a8ff; }
+        .code-comment { color: #8b949e; font-style: italic; }
+        .code-string { color: #a5d6ff; }
+        .code-num { color: #79c0ff; }
+
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.88rem;
+        }
+        .comp-table th, .comp-table td {
+            padding: 0.85rem 1.1rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .comp-table th { background: rgba(167, 139, 250, 0.12); color: #a78bfa; font-weight: 700; }
+        .comp-table td { color: var(--text-secondary); }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+        .faq-card {
+            padding: 1.25rem;
+            border-radius: var(--radius-sm);
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid var(--border);
+        }
+        .faq-card h4 { margin: 0 0 0.5rem; font-size: 0.98rem; color: #a78bfa; }
+        .faq-card p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+        #heroCanvas {
+            border-radius: var(--radius);
+            background: rgba(17, 24, 39, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .pca-lab-wrapper {
+            display: flex;
+            gap: 2rem;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        .pca-canvas-panel {
+            flex: 1;
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .pca-canvas-container {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(17, 24, 39, 0.65);
+        }
+        .pca-canvas-container canvas {
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+        }
+        .canvas-tooltip {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #ffffff;
+            background: rgba(10, 14, 26, 0.85);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .pca-controls-sidebar {
+            width: 330px;
+            min-width: 290px;
+        }
+
+        .control-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(16px);
+        }
+        .control-block h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .slider-group {
+            margin-bottom: 1.25rem;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+        .slider-val {
+            font-family: var(--font-mono);
+            color: #a78bfa;
+            font-weight: 700;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            accent-color: #a78bfa;
+            cursor: pointer;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .preset-btn {
+            padding: 0.55rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: var(--radius-xs);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preset-btn:hover, .preset-btn.active {
+            background: rgba(167, 139, 250, 0.15);
+            border-color: rgba(167, 139, 250, 0.4);
+            color: #a78bfa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animated Neural Mesh Canvas -->
+    <canvas id="neuralBgCanvas" style="position:fixed; inset:0; z-index:-2; pointer-events:none;"></canvas>
+
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">📉</span>
+            <span>PCA Dimensionality Reduction</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory & Knowledge</a></li>
+            <li><a href="#faq">Interview & Guidelines</a></li>
+            <li><a href="#code">Python Code Explainer</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/quest">ML Quest</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Unsupervised Learning · Dimensionality Reduction</p>
+                <h1 class="hero-title">
+                    <span class="title-line">PRINCIPAL COMPONENT</span>
+                    <span class="title-line pca-gradient">ANALYSIS (PCA)</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Discover maximum variance axes, covariance eigenspaces, SVD decomposition, and orthogonal vector projections through interactive 2D rotation playgrounds.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary pca-btn">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground Below ↓</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="380"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : HOUSE OF KNOWLEDGE (THEORY & MATH)
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Mathematical Foundations</span>
+                <h2 class="section-title">PCA: The House of Knowledge</h2>
+                <p class="section-desc">
+                    Master the linear algebra behind Principal Component Analysis — from mean centering and covariance matrices to eigen-decomposition and explained variance ratios.
+                </p>
+            </div>
+
+            <!-- Beginner Intuition & ELI5 Analogy Card -->
+            <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(167, 139, 250, 0.3); padding: 1.75rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">💡</span>
+                    <h3 style="margin:0; font-size:1.25rem; color:#a78bfa;">Principal Component Analysis for Beginners (Explain Like I'm 5)</h3>
+                </div>
+                <p style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem; margin-bottom:1.25rem;">
+                    Imagine taking a 2D photo of a 3D object like a teapot. If you take a photo from the wrong angle, it looks like a flat blob and loses all detail. 
+                    If you tilt your camera to capture its longest diagonal (from handle to spout), you capture maximum detail in 2D! 
+                    <strong>PCA finds the single best camera angle (PC1) that preserves maximum spread (variance) while compressing 100 features down to 2!</strong>
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#a78bfa; font-weight:700;">🎯 1. Center the Data</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Shift all points so the middle of the data cloud sits at the origin $(0, 0)$.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#60a5fa; font-weight:700;">↗️ 2. Find PC1 (Max Spread)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Draw an axis line through the cloud in the direction where points spread out the furthest (maximum variance).</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#34d399; font-weight:700;">📐 3. Find PC2 (90° Angle)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Draw a second axis strictly perpendicular (90° right angle) to PC1 to capture the remaining variation without overlap!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="theory-grid">
+                <!-- 1. Mean Centering -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>1. Mean Centering & Standardizing</h3>
+                    <p>
+                        Prior to computing variance, input dataset \(\mathbf{X} \in \mathbb{R}^{N \times P}\) must be zero-centered to eliminate origin translation bias:
+                    </p>
+                    <div style="background:rgba(167,139,250,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(167,139,250,0.25); color:#a78bfa; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\mathbf{X}_{\text{centered}} = \mathbf{X} - \boldsymbol{\mu}$$
+                    </div>
+                </div>
+
+                <!-- 2. Covariance Matrix -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📐</div>
+                    <h3>2. Sample Covariance Matrix</h3>
+                    <p>
+                        Measures linear pairwise feature alignment across all $P$ dimensions:
+                    </p>
+                    <div style="background:rgba(96,165,250,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(96,165,250,0.25); color:#60a5fa; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\mathbf{\Sigma} = \frac{1}{N - 1} \mathbf{X}_{\text{centered}}^T \mathbf{X}_{\text{centered}}$$
+                    </div>
+                </div>
+
+                <!-- 3. Eigen-Decomposition -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>3. Eigenvalues & Eigenvectors</h3>
+                    <p>
+                        Solves characteristic linear matrix system to identify orthogonal direction vectors \(\mathbf{v}_i\) and variance magnitude scalars \(\lambda_i\):
+                    </p>
+                    <div style="background:rgba(52,211,153,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(52,211,153,0.25); color:#34d399; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\mathbf{\Sigma} \mathbf{v}_i = \lambda_i \mathbf{v}_i$$
+                    </div>
+                </div>
+
+                <!-- 4. Explained Variance Ratio -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📊</div>
+                    <h3>4. Explained Variance Ratio</h3>
+                    <p>
+                        The fraction of total dataset variance preserved by the top $k$ principal component vectors:
+                    </p>
+                    <div style="background:rgba(251,191,36,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(251,191,36,0.25); color:#fbbf24; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\text{Ratio}_k = \frac{\lambda_k}{\sum_{j=1}^P \lambda_j}$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interview & Production Deep-Dive -->
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why is feature scaling mandatory before PCA?</h4>
+                        <p>Features measured in larger numeric units naturally exhibit higher raw variance. Without standardization, PCA would falsely assign top principal components to large-scale features regardless of true signal variance.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: PCA vs. Singular Value Decomposition (SVD)?</h4>
+                        <p>SVD computes principal components directly on feature matrix $\mathbf{X} = \mathbf{U \Sigma V}^T$ without explicitly forming the $\mathcal{O}(P^2)$ covariance matrix, offering higher numerical precision and stability.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: What are the main limitations of PCA?</h4>
+                        <p>PCA assumes linear relationships between features. For non-linear manifold structures (e.g. spirals or concentric rings), non-linear reduction methods like Kernel PCA, t-SNE, or UMAP perform significantly better.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Computational Complexity Summary</h4>
+                        <p><strong>Covariance Matrix:</strong> $\mathcal{O}(N P^2)$.<br><strong>Eigen-decomposition:</strong> $\mathcal{O}(P^3)$.<br><strong>Projection:</strong> $\mathcal{O}(N P k)$ operations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: PCA vs t-SNE vs UMAP</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Manifold Type</th>
+                            <th>Preserved Relationship</th>
+                            <th>Deterministic?</th>
+                            <th>Best Used For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>PCA</strong></td>
+                            <td>Linear Projection</td>
+                            <td>Global Maximum Variance</td>
+                            <td>Yes (Deterministic)</td>
+                            <td>Fast feature reduction, denoising & baseline compression.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>t-SNE</strong></td>
+                            <td>Non-Linear (Probabilistic)</td>
+                            <td>Local Neighborhood Structure</td>
+                            <td>No (Stochastic)</td>
+                            <td>2D/3D visualization of complex high-dimensional clusters.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>UMAP</strong></td>
+                            <td>Non-Linear (Topological)</td>
+                            <td>Global & Local Topology</td>
+                            <td>No (Stochastic)</td>
+                            <td>Fast non-linear projection preserving global manifold topology.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Interactive Line-by-Line Python Code Explainer -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / NumPy Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(167,139,250,0.15); border:1px solid #a78bfa; color:#a78bfa; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <!-- Full-Width Code Container -->
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">pca_scratch.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Step Preset Selectors Below Code -->
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Class Setup & Standardize (L1–7)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Covariance Matrix (L8–11)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Eigen-Decomposition (L12–17)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Matrix Projection (L18–22)</button>
+                </div>
+
+                <!-- Interactive Explanation Panel Below Code Container -->
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel">
+                    <div>
+                        <div class="explain-header">
+                            <span class="explain-line-badge" id="explainLineBadge">Line 4</span>
+                            <h4 id="explainTitle">PCA Constructor & Target Components</h4>
+                        </div>
+                        <p class="explain-body" id="explainBody">
+                            Hover or click any line of code above to inspect its line-by-line breakdown.
+                        </p>
+                    </div>
+                    <div class="explain-math-box" id="explainMathBox">
+                        $$k = 2, \quad \mathbf{X} \in \mathbb{R}^{N \times P} \to \mathbf{X}_{\text{pca}} \in \mathbb{R}^{N \times k}$$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET & DEMO
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Live Demonstration</span>
+                <h2 class="section-title">Sample Dataset Reduction & Model Fit</h2>
+                <p class="section-desc">
+                    Explore how PCA projects multi-dimensional sample datasets down to 2 principal components in real time.
+                </p>
+            </div>
+
+            <!-- Dataset Selector -->
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose a multi-feature dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="iris">🌸 Iris Flower (4 Features → 2 PCs)</option>
+                    <option value="wine">🍷 Wine Chemical Metrics (4 Features → 2 PCs)</option>
+                    <option value="housing">🏠 Real Estate Valuation (4 Features → 2 PCs)</option>
+                </select>
+                <button class="btn btn-primary btn-sm pca-btn" id="trainSampleBtn">Compute PCA Projection</button>
+            </div>
+
+            <!-- Data Table -->
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Dataset Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>#</th><th>Feature X₁</th><th>Feature X₂</th><th>Feature X₃</th><th>Feature X₄</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Metrics Dashboard -->
+            <div class="metrics-dashboard" id="sampleMetrics" style="display:none;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">PC1 Variance Ratio</span>
+                    <span class="metric-value" id="sampleMetricPC1" style="color:#a78bfa;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">PC2 Variance Ratio</span>
+                    <span class="metric-value" id="sampleMetricPC2" style="color:#60a5fa;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Cumulative Variance</span>
+                    <span class="metric-value" id="sampleMetricCum" style="color:#34d399;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Top Eigenvalue ($\lambda_1$)</span>
+                    <span class="metric-value" id="sampleMetricEig" style="color:#fbbf24;">—</span>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid" id="sampleCharts" style="display:none;">
+                <div class="chart-card glass-card">
+                    <h4>PCA 2D Projected Coordinate Scatter</h4>
+                    <canvas id="sampleScatterChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Scree Plot (Eigenvalue Variance Contribution)</h4>
+                    <canvas id="sampleScreeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Visual Simulation</span>
+                <h2 class="section-title">PCA Component Vector Rotation Playground</h2>
+                <p class="section-desc">
+                    Plot custom 2D data points, rotate the PC1 axis vector manually, and watch the variance projection lines and eigenvalue bars update live!
+                </p>
+            </div>
+
+            <div class="pca-lab-wrapper">
+                <!-- Left Interactive 2D Canvas -->
+                <div class="pca-canvas-panel">
+                    <div class="pca-canvas-container">
+                        <canvas id="pcaCanvas" width="600" height="460"></canvas>
+                        <div class="canvas-tooltip" id="canvasTooltip">
+                            <span>Mouse Position: (0.00, 0.00)</span>
+                            <span>•</span>
+                            <span style="color:#a78bfa;" id="varLabel">Projected Variance: 100%</span>
+                        </div>
+                    </div>
+
+                    <!-- Preset Datasets & Actions -->
+                    <div class="glass-card" style="padding:1.25rem;">
+                        <div class="preset-buttons" style="margin-top:0;">
+                            <button class="preset-btn active" data-preset="correlated">📈 Correlated Ellipse</button>
+                            <button class="preset-btn" data-preset="diagonal">↗️ Diagonal Spread</button>
+                            <button class="preset-btn" data-preset="cross">✖️ Cross Cluster</button>
+                            <button class="preset-btn" data-preset="random">🎲 Random Cloud</button>
+                        </div>
+                        <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+                            <button class="btn btn-outline btn-sm" id="btnClearPoints" style="width:100%; justify-content:center;">🗑️ Clear Canvas Points</button>
+                            <button class="btn btn-outline btn-sm" id="btnRandomizePoints" style="width:100%; justify-content:center;">🎲 Add Random Noise</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Controls Sidebar -->
+                <div class="pca-controls-sidebar">
+                    <div class="control-block">
+                        <h3>⚡ Live Vector Controls</h3>
+                        
+                        <!-- Rotation Angle Slider -->
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Axis Angle ($\theta$)</span>
+                                <span class="slider-val" id="valAngle">0°</span>
+                            </div>
+                            <input type="range" id="sliderAngle" min="0" max="180" value="0">
+                        </div>
+
+                        <!-- Auto-Align to PC1 Button -->
+                        <div style="margin-top:1.25rem;">
+                            <button class="btn btn-primary pca-btn" id="btnAutoAlign" style="width:100%; justify-content:center;">✨ Auto-Align to Max Variance (PC1)</button>
+                        </div>
+
+                        <!-- Show Projection Lines Checkbox -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.25rem;">
+                            <span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Draw Orthogonal Projection Lines</span>
+                            <input type="checkbox" id="checkProjections" checked style="accent-color:#a78bfa; width:18px; height:18px; cursor:pointer;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics Dashboard -->
+            <div class="metrics-dashboard" style="margin-top:2rem;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">PC1 Direction Vector ($\mathbf{v}_1$)</span>
+                    <span class="metric-value" id="metricPC1Vector" style="color:#a78bfa;">[0.71, 0.71]</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">PC1 Variance ($\lambda_1$)</span>
+                    <span class="metric-value" id="metricPC1Var" style="color:#34d399;">1.84</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">PC2 Variance ($\lambda_2$)</span>
+                    <span class="metric-value" id="metricPC2Var" style="color:#60a5fa;">0.16</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Explained Variance Ratio</span>
+                    <span class="metric-value" id="metricRatio" style="color:#fbbf24;">92.0%</span>
+                </div>
+            </div>
+
+            <!-- Playground Charts Grid -->
+            <div class="charts-grid" style="margin-top:2rem;">
+                <div class="chart-card glass-card">
+                    <h4>Variance Captured vs. Axis Angle ($\theta$)</h4>
+                    <canvas id="chartAngleVariance" height="220"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Principal Components Variance Comparison</h4>
+                    <canvas id="chartComponentBar" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser · <a href="main.html">Lab Hub</a></p>
+        </div>
+    </footer>
+
+    <script src="pca-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

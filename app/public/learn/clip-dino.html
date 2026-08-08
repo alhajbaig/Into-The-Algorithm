@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLIP & DINO v2 — Into the Algorithm</title>
+    <meta name="description" content="Explore CLIP multimodal image-text contrastive learning and DINO v2 self-distillation with Sinkhorn-Knopp sharpening, PyTorch code explainer, and zero-shot embedding labs.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1" style="background: radial-gradient(circle, #f43f5e 0%, transparent 70%);"></div>
+        <div class="orb orb-2" style="background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);"></div>
+        <div class="orb orb-3" style="background: radial-gradient(circle, #06b6d4 0%, transparent 70%);"></div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🖼️</span>
+            <span>CLIP & DINO v2</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Overview</a></li>
+            <li><a href="#theory">Theory</a></li>
+            <li><a href="#code">Python Code</a></li>
+            <li><a href="#sample">Sample Dataset</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- SECTION 1: HERO OVERVIEW -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Multimodal & Self-Distillation Vision</p>
+                <h1 class="hero-title">
+                    <span class="title-line">CLIP & DINO v2</span>
+                    <span class="title-line accent" style="background: linear-gradient(135deg, #f43f5e, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">(MULTIMODAL & DISTILLATION)</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Bridge vision and text into a shared embedding space using CLIP contrastive alignment, and learn task-agnostic dense visual features with DINO v2 self-distillation.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: HOUSE OF KNOWLEDGE & THEORY -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Theory & Foundations</span>
+                <h2 class="section-title">House of Knowledge</h2>
+                <p class="section-desc">Symmetric cross-entropy, joint vision-text projections, and DINO v2 student-teacher centering & sharpening.</p>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>1. CLIP Symmetric Cross-Entropy</h3>
+                    <p>Calculates dual cross-entropy loss over cosine matrix \(\mathbf{L} = \mathbf{I} \cdot \mathbf{T}^T \cdot e^\tau\) across image and text batches:</p>
+                    <div class="math-block">
+                        $$\mathcal{L}_{CLIP} = \frac{1}{2} \left( \mathcal{L}_{img \to text} + \mathcal{L}_{text \to img} \right)$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>2. Zero-Shot Prompting (\(W_{text}\))</h3>
+                    <p>Classifies images without fine-tuning by comparing image embeddings \(z_I\) against candidate text prompt embeddings \(z_T = \text{TextEnc}("A photo of a \{class\}")\):</p>
+                    <div class="math-block">
+                        $$\hat{y} = \arg\max_k \cos(z_I, z_{T, k})$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🔄</div>
+                    <h3>3. DINO v2 Self-Distillation</h3>
+                    <p>Student network \(g_{\theta_s}\) predicts Teacher network \(g_{\theta_t}\) probability distribution via EMA parameter updates \(\theta_t \leftarrow m \theta_t + (1-m) \theta_s\):</p>
+                    <div class="math-block">
+                        $$\min_{\theta_s} H(P_t(x), P_s(x)) = -\sum P_t(x) \log P_s(x)$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🛡️</div>
+                    <h3>4. Centering & Sharpening</h3>
+                    <p>Prevents collapse in self-distillation by subtracting dynamic center \(c\) (Centering) and scaling temperature \(\tau_t < \tau_s\) (Sharpening):</p>
+                    <div class="math-block">
+                        $$P_t(x) = \text{Softmax}\left(\frac{g_{\theta_t}(x) - c}{\tau_t}\right)$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why does DINO v2 produce superior dense features vs CLIP?</h4>
+                        <p>CLIP optimizes global image-level text alignment, losing fine-grained spatial geometry. DINO v2 applies patch-level self-distillation and Sinkhorn-Knopp centering, producing state-of-the-art dense features for segmentation and depth estimation.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: How to prevent Collapse in Label-Free Self-Distillation?</h4>
+                        <p>DINO uses two complementary mechanisms: Centering (prevents one dimension from dominating) and Sharpening (prevents uniform distribution collapse).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: CLIP vs DINO v2 vs ImageNet Supervised</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Loss Function</th>
+                            <th>Labels Required?</th>
+                            <th>Best Used For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>CLIP (OpenAI)</strong></td>
+                            <td>Symmetric InfoNCE Cross-Entropy</td>
+                            <td>No (400M Web Image-Text Pairs)</td>
+                            <td>Zero-shot classification & retrieval</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DINO v2 (Meta)</strong></td>
+                            <td>Self-Distillation + Patch Masking</td>
+                            <td>No (142M Uncurated Images)</td>
+                            <td>Dense ViT features (Depth, Segmentation)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ImageNet Supervised</strong></td>
+                            <td>Categorical Cross-Entropy</td>
+                            <td>Yes (1.2M Human Class Labels)</td>
+                            <td>Fixed closed-set classification</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SECTION 3: INTERACTIVE LINE-BY-LINE CODE EXPLAINER -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / PyTorch Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(244,63,94,0.15); border:1px solid #f43f5e; color:#f43f5e; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">clip_dino_pytorch.py • PyTorch 2.1</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive"></div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Dual Encoders (L1–6)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Cosine Logits (L7–11)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Symmetric Cross-Entropy (L12–17)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Zero-Shot Predict (L18–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: SAMPLE DATASET & DEMO -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Sample Dataset & Zero-Shot Demo</h2>
+                <p class="section-desc">Evaluate zero-shot image classification accuracy using candidate text prompts.</p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose Test Image:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="dog">🐶 Golden Retriever Image</option>
+                    <option value="car">🏎️ Sports Car Image</option>
+                    <option value="plane">✈️ Commercial Airplane Image</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="trainSampleBtn">Compute Zero-Shot Scores</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Zero-Shot Prompt Matching Matrix</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>Text Prompt</th><th>Text Vector (\(z_T\))</th><th>Cosine Similarity</th><th>Zero-Shot Prob</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics">
+                <div class="metric-card glass-card"><span class="metric-label">Top Prediction</span><span class="metric-value" id="metricTop">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Confidence</span><span class="metric-value" id="metricConf">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Embedding Dim</span><span class="metric-value">512</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">ImageNet Zero-Shot</span><span class="metric-value">76.2%</span></div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts">
+                <div class="chart-card glass-card">
+                    <h4>Prompt Cosine Similarity Bar Chart</h4>
+                    <canvas id="chartPrompts"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>DINO v2 Dense Feature PCA Variance</h4>
+                    <canvas id="chartDino"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: INTERACTIVE VISUAL PLAYGROUND -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Lab</span>
+                <h2 class="section-title">Joint Vision-Language Embedding Lab</h2>
+                <p class="section-desc">Add image vectors (squares) and text prompt vectors (circles) in 2D space to observe contrastive cosine alignment.</p>
+            </div>
+
+            <div class="playground-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:1.5rem;">
+                <div class="glass-card" style="padding:1rem;">
+                    <canvas id="clipCanvas" width="650" height="500" style="width:100%; border-radius:10px; background:#0b0f19; cursor:crosshair;"></canvas>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">Click canvas to add vector. Mode: <strong id="activeToolLabel" style="color:#f43f5e;">Image Vector</strong></span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-sm btn-outline" id="btnAlignStep">⚡ Step CLIP Align</button>
+                            <button class="btn btn-sm btn-outline" id="btnResetPlayground">🔄 Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding:1.25rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem;">Control Panel</h3>
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Vector Type:</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-primary mode-btn active" data-mode="image">🖼️ Image (Square)</button>
+                            <button class="btn btn-sm mode-btn" data-mode="text" style="background:#8b5cf6; border-color:#8b5cf6;">💬 Text (Circle)</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Temperature (\(\tau\)):</span>
+                            <span id="valTau" style="font-weight:700; color:#f43f5e;">0.07</span>
+                        </div>
+                        <input type="range" id="sliderTau" min="0.01" max="0.50" step="0.01" value="0.07" style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Presets:</label>
+                        <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="animals">🐶 Dogs vs 🐱 Cats Prompts</button>
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="vehicles">🚗 Cars vs ✈️ Planes</button>
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(0,0,0,0.3); padding:0.85rem; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Avg Positive Cosine: <strong id="lblCos" style="color:#f43f5e;">0.892</strong></div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">Zero-Shot Loss: <strong id="lblLoss" style="color:#8b5cf6;">0.124</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container" style="text-align:center; padding:2rem 0; color:var(--text-secondary); font-size:0.85rem;">
+            Into the Algorithm • CLIP & DINO v2 Visual Guide
+        </div>
+    </footer>
+
+    <script src="clip-dino-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

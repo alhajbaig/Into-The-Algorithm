@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Label Propagation & Spreading — Into the Algorithm</title>
+    <meta name="description" content="Explore Graph-based Semi-Supervised Label Propagation and Spreading with interactive affinity matrices, harmonic functions, Python code explainer, and real-time network labs.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1" style="background: radial-gradient(circle, #f472b6 0%, transparent 70%);"></div>
+        <div class="orb orb-2" style="background: radial-gradient(circle, #fbbf24 0%, transparent 70%);"></div>
+        <div class="orb orb-3" style="background: radial-gradient(circle, #38bdf8 0%, transparent 70%);"></div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🌐</span>
+            <span>Label Propagation</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Overview</a></li>
+            <li><a href="#theory">Theory</a></li>
+            <li><a href="#code">Python Code</a></li>
+            <li><a href="#sample">Sample Dataset</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- SECTION 1: HERO OVERVIEW -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Graph Semi-Supervised Learning</p>
+                <h1 class="hero-title">
+                    <span class="title-line">LABEL PROPAGATION &</span>
+                    <span class="title-line accent" style="background: linear-gradient(135deg, #f472b6, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">LABEL SPREADING</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Propagate class distributions across dense similarity graphs using Gaussian RBF edge weights, normalized Laplacians, and iterative transition matrices.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: HOUSE OF KNOWLEDGE & THEORY -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Theory & Foundations</span>
+                <h2 class="section-title">House of Knowledge</h2>
+                <p class="section-desc">RBF similarity matrices, Normalized Graph Laplacians, and exact harmonic fixed-point solutions.</p>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📐</div>
+                    <h3>1. RBF Similarity Matrix (\(\mathbf{W}\))</h3>
+                    <p>Edge affinity between nodes \(x_i\) and \(x_j\) computed via Gaussian Radial Basis Function kernel:</p>
+                    <div class="math-block">
+                        $$W_{ij} = \exp\left(-\gamma \|x_i - x_j\|^2\right) \quad \text{for } i \ne j, \quad W_{ii} = 0$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🔄</div>
+                    <h3>2. Probabilistic Transition (\(\mathbf{P}\))</h3>
+                    <p>Normalizes row affinities by diagonal degree matrix \(D_{ii} = \sum_j W_{ij}\) into Markov transition matrix:</p>
+                    <div class="math-block">
+                        $$\mathbf{P} = \mathbf{D}^{-1} \mathbf{W}, \quad P_{ij} = \frac{W_{ij}}{\sum_k W_{ik}}$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>3. Label Spreading Update (\(\alpha\))</h3>
+                    <p>Iteratively updates node probabilities with clamping parameter \(\alpha \in (0, 1)\) preserving initial seeds:</p>
+                    <div class="math-block">
+                        $$\mathbf{Y}^{(t+1)} = \alpha \mathbf{S} \mathbf{Y}^{(t)} + (1 - \alpha) \mathbf{Y}^{(0)}$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🔮</div>
+                    <h3>4. Closed-Form Fixed Point</h3>
+                    <p>As \(t \to \infty\), system converges directly to harmonic function solution on graph manifold:</p>
+                    <div class="math-block">
+                        $$\mathbf{Y}^* = (1 - \alpha) (\mathbf{I} - \alpha \mathbf{S})^{-1} \mathbf{Y}^{(0)}$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Difference between Label Propagation and Label Spreading?</h4>
+                        <p>Label Propagation hard-clamps initial seed labels (\(\mathbf{Y}_L^{(t)} = \mathbf{Y}_L^{(0)}\)), whereas Label Spreading uses normalized Laplacian \(\mathbf{S} = \mathbf{D}^{-1/2}\mathbf{W}\mathbf{D}^{-1/2}\) and soft-clamping \(\alpha\), rendering it far more robust to noisy initial seeds.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: How to set RBF Hyperparameter \(\gamma\)?</h4>
+                        <p>Too large \(\gamma\) disconnects nodes into isolated components; too small \(\gamma\) turns graph into uniform noise. Tune via k-nearest neighbor distance heuristics.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: Label Propagation vs Label Spreading vs KNN</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Clamping Policy</th>
+                            <th>Graph Operator</th>
+                            <th>Noise Tolerance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Label Propagation</strong></td>
+                            <td>Hard Clamping (\(\alpha = 1\))</td>
+                            <td>Row Normalized \(\mathbf{D}^{-1}\mathbf{W}\)</td>
+                            <td>Low (Seed noise persists)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Label Spreading</strong></td>
+                            <td>Soft Clamping (\(\alpha < 1\))</td>
+                            <td>Normalized Laplacian \(\mathbf{D}^{-1/2}\mathbf{W}\mathbf{D}^{-1/2}\)</td>
+                            <td>High (Smooth regularization)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>KNN Classifier</strong></td>
+                            <td>Local Voting (No Propagation)</td>
+                            <td>Top K Euclidean Distance</td>
+                            <td>Medium (Local boundary only)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SECTION 3: INTERACTIVE LINE-BY-LINE CODE EXPLAINER -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / NumPy Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(244,114,182,0.15); border:1px solid #f472b6; color:#f472b6; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">label_propagation_scratch.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive"></div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. RBF Matrix (L1–6)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Degree Norm (L7–11)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Spreading Loop (L12–17)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Final Argmax (L18–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: SAMPLE DATASET & DEMO -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Sample Dataset & Model Fit</h2>
+                <p class="section-desc">Observe graph label propagation over manifold point clouds in real-time.</p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose Dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="circles">⭕ Concentric Rings</option>
+                    <option value="moons">🌙 Entangled Moons</option>
+                    <option value="spiral">🌀 Triple Spiral</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="trainSampleBtn">Propagate 1 Step</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Graph Nodes Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>Node #</th><th>Degree (\(D_{ii}\))</th><th>Class 0 Prob</th><th>Class 1 Prob</th><th>Predicted</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics">
+                <div class="metric-card glass-card"><span class="metric-label">Graph Nodes</span><span class="metric-value" id="metricNodes">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Active Edges</span><span class="metric-value" id="metricEdges">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Iteration Step</span><span class="metric-value" id="metricStep">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Energy Loss</span><span class="metric-value" id="metricEnergy">—</span></div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts">
+                <div class="chart-card glass-card">
+                    <h4>Dirichlet Energy vs Iterations</h4>
+                    <canvas id="chartEnergy"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Node Label Certainty Histogram</h4>
+                    <canvas id="chartCertainty"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: INTERACTIVE VISUAL PLAYGROUND -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Lab</span>
+                <h2 class="section-title">Label Propagation Playground</h2>
+                <p class="section-desc">Tune kernel scale \(\gamma\) and clamping \(\alpha\), add seeds, and step through transition iterations.</p>
+            </div>
+
+            <div class="playground-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:1.5rem;">
+                <div class="glass-card" style="padding:1rem;">
+                    <canvas id="lpCanvas" width="650" height="500" style="width:100%; border-radius:10px; background:#0b0f19; cursor:crosshair;"></canvas>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">Click canvas to add node. Active: <strong id="activeToolLabel" style="color:#f472b6;">Seed Class 0</strong></span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-sm btn-outline" id="btnPropStep">⚡ Step 1 Iteration</button>
+                            <button class="btn btn-sm btn-outline" id="btnResetPlayground">🔄 Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding:1.25rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem;">Control Panel</h3>
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Node Mode:</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-primary mode-btn active" data-mode="class0">Pink (Class 0)</button>
+                            <button class="btn btn-sm mode-btn" data-mode="class1" style="background:#fbbf24; border-color:#fbbf24; color:#000;">Yellow (Class 1)</button>
+                            <button class="btn btn-sm mode-btn" data-mode="unlabeled" style="background:rgba(255,255,255,0.1); grid-column:span 2;">⚪ Unlabeled Node</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Kernel Scale (\(\gamma\)):</span>
+                            <span id="valGamma" style="font-weight:700; color:#f472b6;">20.0</span>
+                        </div>
+                        <input type="range" id="sliderGamma" min="1" max="100" step="1" value="20" style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Clamping Factor (\(\alpha\)):</span>
+                            <span id="valAlpha" style="font-weight:700; color:#fbbf24;">0.80</span>
+                        </div>
+                        <input type="range" id="sliderAlpha" min="0.1" max="0.99" step="0.01" value="0.80" style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Presets:</label>
+                        <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="rings">⭕ Concentric Rings</button>
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="moons">🌙 Entangled Moons</button>
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(0,0,0,0.3); padding:0.85rem; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Current Iteration: <strong id="lblStep" style="color:#ffffff;">Step 0</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container" style="text-align:center; padding:2rem 0; color:var(--text-secondary); font-size:0.85rem;">
+            Into the Algorithm • Label Propagation & Spreading Visual Guide
+        </div>
+    </footer>
+
+    <script src="label-propagation-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

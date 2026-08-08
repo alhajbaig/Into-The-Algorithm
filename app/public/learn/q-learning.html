@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-Learning (Model-Free RL) — Interactive Visual Guide & House of Knowledge</title>
+    <meta name="description" content="Master Model-Free Q-Learning Reinforcement Learning interactively with Bellman optimality equations, Q-table updates, epsilon-greedy exploration, GridWorld environments, Python code explainer, and live playgrounds.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .ql-accent { color: #f59e0b; }
+        .ql-gradient { 
+            background: linear-gradient(135deg, #fbbf24, #f59e0b); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .ql-btn { 
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35) !important;
+        }
+        .ql-btn:hover { 
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5) !important; 
+            transform: translateY(-2px);
+        }
+
+        .code-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #060913;
+            margin-top: 1rem;
+        }
+        .code-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0a0e1a;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .code-dot-group { display: flex; gap: 6px; }
+        .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27c93f; }
+        .code-header-title { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-secondary); }
+
+        .code-block-interactive {
+            background: #060913;
+            padding: 1rem 0;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.8;
+            color: #e6edf3;
+            overflow-x: auto;
+            margin: 0;
+        }
+        .code-line {
+            display: flex;
+            padding: 0.25rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            border-left: 3px solid transparent;
+        }
+        .code-line:hover, .code-line.active {
+            background: rgba(251, 191, 36, 0.15);
+            border-left-color: #fbbf24;
+        }
+        .code-line.locked {
+            background: rgba(251, 191, 36, 0.28) !important;
+            border-left: 4px solid #fbbf24 !important;
+            box-shadow: inset 0 0 12px rgba(251, 191, 36, 0.2);
+        }
+        .line-num {
+            width: 30px;
+            color: #4b5563;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-right: 1.25rem;
+            flex-shrink: 0;
+        }
+        .line-content { white-space: pre; flex: 1; }
+
+        .code-step-selector { display: flex; gap: 0.5rem; margin-top: 1.25rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .code-tab-btn {
+            padding: 0.5rem 0.85rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .code-tab-btn:hover, .code-tab-btn.active {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.4);
+            color: #fbbf24;
+        }
+
+        .code-explanation-panel {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            margin-top: 0.5rem;
+        }
+        .explain-line-badge {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.15);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .explain-header h4 { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin: 0 0 0.5rem 0; }
+        .explain-body { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 0.85rem; }
+        .explain-math-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: #fbbf24;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .code-keyword { color: #ff7b72; font-weight: 600; }
+        .code-func { color: #d2a8ff; }
+        .code-comment { color: #8b949e; font-style: italic; }
+        .code-string { color: #a5d6ff; }
+        .code-num { color: #79c0ff; }
+
+        .comp-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.88rem; }
+        .comp-table th, .comp-table td { padding: 0.85rem 1.1rem; border: 1px solid var(--border); text-align: left; }
+        .comp-table th { background: rgba(251, 191, 36, 0.12); color: #fbbf24; font-weight: 700; }
+        .comp-table td { color: var(--text-secondary); }
+
+        .faq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 1.25rem; }
+        .faq-card { padding: 1.25rem; border-radius: var(--radius-sm); background: rgba(17, 24, 39, 0.6); border: 1px solid var(--border); }
+        .faq-card h4 { margin: 0 0 0.5rem; font-size: 0.98rem; color: #fbbf24; }
+        .faq-card p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+        #heroCanvas { border-radius: var(--radius); background: rgba(17, 24, 39, 0.5); border: 1px solid var(--border); }
+
+        .ql-lab-wrapper { display: flex; gap: 2rem; align-items: stretch; flex-wrap: wrap; }
+        .ql-canvas-panel { flex: 1; min-width: 340px; display: flex; flex-direction: column; gap: 1rem; }
+        .ql-canvas-container { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: rgba(17, 24, 39, 0.65); }
+        .ql-canvas-container canvas { display: block; width: 100%; cursor: crosshair; }
+        .canvas-tooltip {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 0.78rem; font-weight: 600; color: #ffffff;
+            background: rgba(10, 14, 26, 0.85); padding: 0.4rem 1rem; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); pointer-events: none; display: flex; align-items: center; gap: 0.5rem;
+        }
+        .ql-controls-sidebar { width: 330px; min-width: 290px; }
+
+        .control-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; backdrop-filter: blur(16px); }
+        .control-block h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+
+        .slider-group { margin-bottom: 1.25rem; }
+        .slider-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .slider-val { font-family: var(--font-mono); color: #fbbf24; font-weight: 700; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); outline: none; accent-color: #fbbf24; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- Background Animated Neural Mesh Canvas -->
+    <canvas id="neuralBgCanvas" style="position:fixed; inset:0; z-index:-2; pointer-events:none;"></canvas>
+
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🤖</span>
+            <span>Q-Learning (Model-Free RL)</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory & Knowledge</a></li>
+            <li><a href="#faq">Interview & Guidelines</a></li>
+            <li><a href="#code">Python Code Explainer</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/quest">ML Quest</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Reinforcement Learning · Model-Free Control</p>
+                <h1 class="hero-title">
+                    <span class="title-line">MODEL-FREE TABULAR</span>
+                    <span class="title-line ql-gradient">Q-LEARNING</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Master Temporal Difference (TD) learning — from Bellman Optimality updates and Q-table state-action values to $\epsilon$-greedy exploration in GridWorld environments.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary ql-btn">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try GridWorld Below ↓</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="380"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : HOUSE OF KNOWLEDGE (THEORY & MATH)
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Mathematical Foundations</span>
+                <h2 class="section-title">Q-Learning: The House of Knowledge</h2>
+                <p class="section-desc">
+                    Master Temporal Difference learning, Bellman optimality, and Q-table value updates without knowing environmental physics.
+                </p>
+            </div>
+
+            <!-- Beginner Intuition & ELI5 Analogy Card -->
+            <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(251, 191, 36, 0.3); padding: 1.75rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">💡</span>
+                    <h3 style="margin:0; font-size:1.25rem; color:#fbbf24;">Q-Learning for Beginners (Explain Like I'm 5)</h3>
+                </div>
+                <p style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem; margin-bottom:1.25rem;">
+                    Imagine a robot navigating a dark maze to find cheese without a map. Every time it steps into a trap, it gets a negative score (-10). When it finds cheese, it gets (+100)! 
+                    <strong>Q-Learning creates a cheat-sheet table (Q-Table) recording expected future rewards for every move in every room through trial and error!</strong>
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#fbbf24; font-weight:700;">🗺️ 1. The Q-Table Cheat-Sheet</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Stores a score $Q(s, a)$ for every State $s$ and Action $a$ (Up, Down, Left, Right).</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#34d399; font-weight:700;">🎲 2. $\epsilon$-Greedy Exploration</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">With probability $\epsilon$, try a random wild move to discover new routes; otherwise pick the best known move!</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#60a5fa; font-weight:700;">⚡ 3. Bellman TD Update</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">After stepping into room $s'$, update current $Q(s,a)$ toward immediate reward $R$ plus discounted future value $\gamma \max a' Q(s', a')$!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="theory-grid">
+                <!-- 1. Q-Value Definition -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📊</div>
+                    <h3>1. Action-Value Function ($Q^\pi$)</h3>
+                    <p>
+                        The expected cumulative discounted return starting from state $s$, taking action $a$, and following policy $\pi$:
+                    </p>
+                    <div style="background:rgba(251,191,36,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(251,191,36,0.25); color:#fbbf24; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$Q^\pi(s, a) = \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t R_{t+1} \;\middle|\; S_0 = s, A_0 = a \right]$$
+                    </div>
+                </div>
+
+                <!-- 2. Bellman Optimality Equation -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>2. Bellman Optimality Equation</h3>
+                    <p>
+                        Expresses optimal action-value $Q^*(s, a)$ recursively as immediate reward plus discounted maximum future return:
+                    </p>
+                    <div style="background:rgba(52,211,153,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(52,211,153,0.25); color:#34d399; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$Q^*(s, a) = R(s, a) + \gamma \max_{a'} Q^*(s', a')$$
+                    </div>
+                </div>
+
+                <!-- 3. Temporal Difference (TD) Update -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>3. Temporal Difference (TD) Update</h3>
+                    <p>
+                        Off-policy TD control update rule adjusting Q-table values with learning rate $\alpha$:
+                    </p>
+                    <div style="background:rgba(96,165,250,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(96,165,250,0.25); color:#60a5fa; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$Q(s,a) \leftarrow Q(s,a) + \alpha \left[ R + \gamma \max_{a'} Q(s',a') - Q(s,a) \right]$$
+                    </div>
+                </div>
+
+                <!-- 4. Epsilon-Greedy Policy -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎲</div>
+                    <h3>4. Exploration vs Exploitation ($\epsilon$)</h3>
+                    <p>
+                        Balances exploring unknown states with exploiting current best Q-table actions:
+                    </p>
+                    <div style="background:rgba(248,113,113,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(248,113,113,0.25); color:#f87171; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\pi(a \mid s) = \begin{cases} \arg\max_a Q(s,a) & \text{w.p. } 1 - \epsilon \\ \text{random action} & \text{w.p. } \epsilon \end{cases}$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why is Q-Learning called an "Off-Policy" algorithm?</h4>
+                        <p>Q-Learning evaluates the optimal greedy policy ($\max_{a'} Q(s',a')$) while executing a different exploratory policy ($\epsilon$-greedy) to collect experience samples.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: What is the Curse of Dimensionality in Tabular Q-Learning?</h4>
+                        <p>Tabular Q-Learning requires an explicit table entry for every State-Action pair $|S| \times |A|$. For continuous or high-dimensional states (e.g. Atari pixels), tabular memory explodes, requiring Deep Q-Networks (DQN)!</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: What does Discount Factor ($\gamma$) control?</h4>
+                        <p>$\gamma \in [0, 1)$ weighs future rewards against immediate rewards. $\gamma=0$ makes the agent shortsighted, while $\gamma \to 1$ values long-term rewards heavily.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Computational Complexity Summary</h4>
+                        <p><strong>Table Lookup & Update:</strong> $\mathcal{O}(1)$ time per step.<br><strong>Space Complexity:</strong> $\mathcal{O}(|S| \cdot |A|)$ memory space.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: Q-Learning vs SARSA vs DQN</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Policy Type</th>
+                            <th>State Space Support</th>
+                            <th>Convergence Guarantee</th>
+                            <th>Best Used For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Q-Learning</strong></td>
+                            <td>Off-Policy (Greedy max)</td>
+                            <td>Discrete (Tabular)</td>
+                            <td>Guaranteed under infinite visits</td>
+                            <td>Discrete GridWorld, board games & small finite MDPs.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SARSA</strong></td>
+                            <td>On-Policy (Actual next action)</td>
+                            <td>Discrete (Tabular)</td>
+                            <td>Guaranteed under GLIE decay</td>
+                            <td>Safe exploration environments where risky moves have huge penalties.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DQN</strong></td>
+                            <td>Off-Policy (Replay Buffer)</td>
+                            <td>Continuous / High-Dim Pixels</td>
+                            <td>Empirical (Neural approx)</td>
+                            <td>Atari video games, robotic joint control & complex visual RL.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / NumPy Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(251,191,36,0.15); border:1px solid #fbbf24; color:#fbbf24; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">q_learning_gridworld.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Class & Q-Table Setup (L1–7)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Epsilon-Greedy Action (L8–12)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Bellman TD Update (L13–18)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Training Loop (L19–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel">
+                    <div>
+                        <div class="explain-header">
+                            <span class="explain-line-badge" id="explainLineBadge">Line 4</span>
+                            <h4 id="explainTitle">Q-Learning Agent Constructor</h4>
+                        </div>
+                        <p class="explain-body" id="explainBody">
+                            Hover or click any line of code above to inspect its line-by-line breakdown.
+                        </p>
+                    </div>
+                    <div class="explain-math-box" id="explainMathBox">
+                        $$\alpha = 0.1, \quad \gamma = 0.95, \quad \epsilon = 0.1$$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET & DEMO
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Live Demonstration</span>
+                <h2 class="section-title">Sample Environment Training & Q-Table Convergence</h2>
+                <p class="section-desc">
+                    Explore how tabular Q-learning converges on optimal policies across classic discrete RL benchmark environments.
+                </p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose a discrete RL environment:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="frozen">🧊 FrozenLake-v1 (Slippery Grid Navigation)</option>
+                    <option value="taxi">🚕 Taxi-v3 (Passenger Pick & Drop)</option>
+                    <option value="cliff">⛰️ Cliff Walking (Risky Boundary Exploration)</option>
+                </select>
+                <button class="btn btn-primary btn-sm ql-btn" id="trainSampleBtn">Train Q-Learning Agent</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Sample Q-Table State Values</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>State ID</th><th>Q(State, Up)</th><th>Q(State, Down)</th><th>Q(State, Left)</th><th>Q(State, Right)</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics" style="display:none;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Episodes Completed</span>
+                    <span class="metric-value" id="sampleMetricEpisodes" style="color:#fbbf24;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Success Rate</span>
+                    <span class="metric-value" id="sampleMetricSuccess" style="color:#34d399;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Average Steps per Episode</span>
+                    <span class="metric-value" id="sampleMetricSteps" style="color:#60a5fa;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Max Q-Value ($\max Q$)</span>
+                    <span class="metric-value" id="sampleMetricMaxQ" style="color:#f472b6;">—</span>
+                </div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts" style="display:none;">
+                <div class="chart-card glass-card">
+                    <h4>Episode Reward Curve</h4>
+                    <canvas id="sampleScatterChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>TD Error Convergence</h4>
+                    <canvas id="sampleConvergenceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Visual Simulation</span>
+                <h2 class="section-title">GridWorld Q-Learning Agent Playground</h2>
+                <p class="section-desc">
+                    Watch a live RL agent (🤖) navigate a 6x6 GridWorld with obstacles (🧱) and traps (🔥) to reach the Goal (🏆), updating Q-values live on every step!
+                </p>
+            </div>
+
+            <div class="ql-lab-wrapper">
+                <div class="ql-canvas-panel">
+                    <div class="ql-canvas-container">
+                        <canvas id="qlCanvas" width="600" height="460"></canvas>
+                        <div class="canvas-tooltip" id="canvasTooltip">
+                            <span>Agent Cell: (0, 0)</span>
+                            <span>•</span>
+                            <span style="color:#fbbf24;" id="rewardLabel">Total Reward: 0</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="padding:1.25rem;">
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-primary ql-btn" id="btnStepAgent" style="width:100%; justify-content:center;">⏯️ Step 1 Episode</button>
+                            <button class="btn btn-outline btn-sm" id="btnRunFast" style="width:100%; justify-content:center;">🚀 Train 50 Episodes</button>
+                            <button class="btn btn-outline btn-sm" id="btnResetQTable" style="width:100%; justify-content:center;">🗑️ Reset Q-Table</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ql-controls-sidebar">
+                    <div class="control-block">
+                        <h3>⚡ RL Hyperparameters</h3>
+                        
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Learning Rate ($\alpha$)</span>
+                                <span class="slider-val" id="valAlpha">0.20</span>
+                            </div>
+                            <input type="range" id="sliderAlpha" min="0.01" max="0.99" step="0.01" value="0.20">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Discount Factor ($\gamma$)</span>
+                                <span class="slider-val" id="valGamma">0.95</span>
+                            </div>
+                            <input type="range" id="sliderGamma" min="0.5" max="0.99" step="0.01" value="0.95">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Exploration ($\epsilon$)</span>
+                                <span class="slider-val" id="valEpsilon">0.15</span>
+                            </div>
+                            <input type="range" id="sliderEpsilon" min="0.01" max="0.99" step="0.01" value="0.15">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" style="margin-top:2rem;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Episodes Completed</span>
+                    <span class="metric-value" id="metricEpisodes" style="color:#fbbf24;">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Latest Episode Return</span>
+                    <span class="metric-value" id="metricReturn" style="color:#34d399;">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Exploration ($\epsilon$)</span>
+                    <span class="metric-value" id="metricEpsDisplay" style="color:#60a5fa;">0.15</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Average TD Error</span>
+                    <span class="metric-value" id="metricTDError" style="color:#f472b6;">0.00</span>
+                </div>
+            </div>
+
+            <div class="charts-grid" style="margin-top:2rem;">
+                <div class="chart-card glass-card">
+                    <h4>Episode Cumulative Reward Progress</h4>
+                    <canvas id="chartReward" height="220"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Average Steps per Episode</h4>
+                    <canvas id="chartSteps" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser · <a href="main.html">Lab Hub</a></p>
+        </div>
+    </footer>
+
+    <script src="q-learning-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

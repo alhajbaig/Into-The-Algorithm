@@ -1,0 +1,1100 @@
+/* Model Genome Explorer — Glassmorphic Dark Sci-Fi Styles */
+
+.model-genome-page-wrap {
+  padding: 2rem;
+  max-width: 1340px;
+  margin: 0 auto;
+  min-height: calc(100vh - 80px);
+}
+
+.model-genome-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--glow);
+}
+
+.hero-title-block {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.dna-avatar-pulse {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(52, 211, 153, 0.15);
+  border: 1.5px solid #34d399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+}
+
+.title-text-group h1 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.25rem 0;
+  color: var(--text);
+}
+
+.title-text-group p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.genome-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+}
+
+/* Tabs Navigation */
+.genome-tabs-nav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.genome-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.genome-tab-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.genome-tab-btn.active {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+}
+
+/* Tree Canvas Card */
+.evolution-tree-card {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.tree-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tree-title-group h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.2rem 0;
+}
+
+.tree-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.tree-controls-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tree-canvas-wrapper {
+  width: 100%;
+  height: 520px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(10, 14, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tree-svg-element {
+  width: 100%;
+  height: 100%;
+}
+
+/* Traits Radar */
+.genetic-traits-card {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-head h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.radar-grid-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.radar-svg-container {
+  width: 320px;
+  height: 320px;
+}
+
+.trait-bars-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.trait-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.trait-bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+.trait-name {
+  color: var(--muted);
+}
+
+.trait-val {
+  font-weight: 700;
+}
+
+.trait-rail {
+  height: 6px;
+  width: 100%;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.trait-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* Inspector Drawer */
+.genome-inspector-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+}
+
+.genome-inspector-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 580px;
+  max-width: 90vw;
+  background: #0f172a;
+  border-left: 1px solid var(--border-strong);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+}
+
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.species-identity h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0.3rem 0;
+}
+
+.species-family-tag {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: var(--text);
+}
+
+.drawer-scroll-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.genome-spec-section {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+
+.genome-spec-section h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.8rem 0;
+}
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.spec-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.spec-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.strategy-text {
+  font-size: 0.82rem;
+  color: var(--text);
+  margin: 0.4rem 0;
+}
+
+.genome-two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.strength-box, .weakness-box, .failure-modes-box {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.strength-box h4, .weakness-box h4, .failure-modes-box h4 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem 0;
+}
+
+.strength-box ul, .weakness-box ul, .failure-modes-box ul {
+  padding-left: 1.1rem;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Mutation Lab */
+.mutation-lab-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mutation-hero {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.mutation-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0.3rem 0 0 0;
+}
+
+.mutation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.mutation-sliders-card, .mutation-drift-card {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.card-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.btn-reset {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-reset:hover {
+  color: var(--text);
+}
+
+.gene-group {
+  margin-bottom: 1rem;
+}
+
+.gene-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  margin-bottom: 0.3rem;
+}
+
+.gene-val {
+  font-weight: 700;
+  color: #34d399;
+}
+
+.styled-slider {
+  width: 100%;
+  accent-color: #34d399;
+}
+
+.gene-select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.82rem;
+  margin-top: 0.3rem;
+}
+
+.drift-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+}
+
+.drift-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.drift-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+.drift-rail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.drift-rail {
+  height: 5px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.drift-rail.base .fill {
+  background: rgba(255, 255, 255, 0.3);
+  height: 100%;
+}
+
+.drift-rail.mutated .fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Simulator View */
+.simulator-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.simulator-hero {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.trajectory-selector-pills {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.traj-pill {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.traj-pill.active {
+  border-color: #f472b6;
+  background: rgba(244, 114, 182, 0.15);
+  color: #f472b6;
+}
+
+.stepper-pipeline {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.step-node {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.step-node.active, .step-node.completed {
+  opacity: 1;
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.step-node.active .step-number {
+  background: #f472b6;
+  color: #fff;
+}
+
+.step-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.simulator-story-card {
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.story-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.story-nav-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-step-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.nav-step-btn.primary {
+  background: #f472b6;
+  border-color: #f472b6;
+  color: #000;
+  font-weight: 700;
+}
+
+.story-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.story-explanation-box, .story-traits-box {
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+}
+
+.explanation-text {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.key-mutation-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  margin-top: 1rem;
+}
+
+.trait-deltas-grid {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+
+.delta-chip {
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  font-size: 0.72rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.inspect-model-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Comparison Matrix */
+.comparison-matrix-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.comparison-hero {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.species-chips-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.species-chip-btn {
+  padding: 0.35rem 0.7rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.species-chip-btn.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+}
+
+.matrix-table-card, .side-by-side-card {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.matrix-grid-wrapper, .table-responsive {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.dna-matrix-table, .side-side-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.dna-matrix-table th, .dna-matrix-table td,
+.side-side-table th, .side-side-table td {
+  padding: 0.75rem;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.score-cell {
+  font-weight: 800;
+}
+
+.cell-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  align-items: center;
+}
+
+.mini-rail {
+  width: 60px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mini-fill {
+  height: 100%;
+  background: #38bdf8;
+}
+
+/* Timeline */
+.timeline-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.timeline-hero {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.timeline-eras-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.era-section {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.era-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.era-header h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.era-models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.timeline-model-card {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.year-badge {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #60a5fa;
+}
+
+.timeline-model-card h5 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.2rem 0;
+}
+
+.creator-text {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0 0 0.5rem 0;
+}
+
+.breakthrough-text {
+  font-size: 0.78rem;
+  color: var(--text);
+  line-height: 1.4;
+  margin: 0 0 0.8rem 0;
+}
+
+.card-footer-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+}
+
+/* Ecosystem */
+.ecosystem-nav-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ecosystem-hero {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.ecosystem-pills-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.eco-pill {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.eco-pill.active {
+  border-color: #34d399;
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+}
+
+.ecosystem-species-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.eco-species-card {
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+
+}
+
+.eco-species-card h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.4rem 0 0.2rem 0;
+}
+
+.arch-desc {
+  font-size: 0.78rem;
+  color: var(--text);
+
+  margin: 0 0 0.4rem 0;
+}
+
+.type-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin: 0 0 0.8rem 0;
+}
+
+.eco-strengths-mini {
+  font-size: 0.75rem;
+  color: #34d399;
+
+  margin-bottom: 0.8rem;
+}
+
+.eco-card-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+}
+
+/* AI Teacher Card */
+.ai-teacher-card {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.bot-pulse {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(96, 165, 250, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-qna-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.qna-list-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.qna-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+
+  text-align: left;
+}
+
+.qna-btn.active {
+  border-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.15);
+  color: var(--text);
+}
+
+.qna-answer-box {
+  padding: 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+}
+
+.answer-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #34d399;
+  margin-bottom: 0.6rem;
+}
+
+.answer-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text);
+
+  margin: 0;
+}
+
+/* Integration Grid */
+.integration-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.synergy-box {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.synergy-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.synergy-head h4 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.synergy-val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+
+.synergy-sub, .synergy-reason {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.btn-next-rec {
+  margin-top: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #60a5fa;
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.code-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-purple { color: #c084fc; }
+.text-green { color: #34d399; }
+.text-red { color: #f87171; }
+.mt-4 { margin-top: 1rem; }

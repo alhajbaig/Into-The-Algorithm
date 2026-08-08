@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>ML Algorithm Visualizer — Interactive Learning</title>
+    <meta name='description' content='Explore machine learning algorithms interactively with beautiful visualizations, mathematical intuition, and hands-on playgrounds.'>
+    <!-- Google Fonts -->
+    <link rel='preconnect' href='https://fonts.googleapis.com'>
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap' rel='stylesheet'>
+    <!-- Styles -->
+    <link rel='stylesheet' href='styles.css'>
+</head>
+<body>
+    <!-- Ambient Background (orbs) -->
+    <div class='ambient-bg'>
+        <div class='orb orb-1'></div>
+        <div class='orb orb-2'></div>
+        <div class='orb orb-3'></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class='navbar' id='navbar'>
+        <div class='nav-brand'>
+            <span class='nav-icon'>🧠</span>
+            <span>ML Visualizer</span>
+        </div>
+        <ul class='nav-links'>
+            <li><a href='#hero'>Home</a></li>
+            <li><a href='ml_prerequisites.html'>Prerequisites</a></li>
+            <li><a href='#algorithms'>Algorithms</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class='hero' id='hero'>
+        <div class='hero-content' style='text-align:center; flex-direction:column;'>
+            <div class='hero-text' style='text-align:center;'>
+                <p class='hero-tag'>Interactive Learning Platform</p>
+                <h1 class='hero-title'>
+                    <span class='title-line'>MACHINE LEARNING</span>
+                    <span class='title-line accent'>ALGORITHM VISUALIZER</span>
+                </h1>
+                <p class='hero-subtitle' style='margin-left:auto; margin-right:auto;'>
+                    Master ML algorithms through interactive visualizations, real-time training,
+                    and hands-on experimentation — all running in your browser.
+                </p>
+                <div class='hero-cta' style='justify-content:center; gap: 16px; display: flex;'>
+                    <a href='#algorithms' class='btn btn-primary'>Explore Algorithms</a>
+                    <a href='ml_prerequisites.html' class='btn' style='background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white;'>Field Notes & Prerequisites</a>
+                </div>
+            </div>
+        </div>
+        <div class='scroll-indicator'>
+            <span>Scroll to explore</span>
+            <div class='scroll-arrow'></div>
+        </div>
+    </section>
+
+    <!-- Algorithms Section -->
+    <section class='section' id='algorithms'>
+        <div class='container'>
+            <div class='section-header'>
+                <span class='section-tag'>Explore & Learn</span>
+                <h2 class='section-title'>Choose an Algorithm</h2>
+                <p class='section-desc'>
+                    Each algorithm page includes theory, interactive visualizations,
+                    sample datasets, and a playground to try your own data.
+                </p>
+            </div>
+
+            <div class='algo-grid'>
+                <!-- Linear Regression -->
+                <a href='index.html' class='algo-card glass-card'>
+                    <div class='algo-card-badge'>Regression</div>
+                    <div class='algo-card-icon'>📈</div>
+                    <h3 class='algo-card-title'>Linear Regression</h3>
+                    <p class='algo-card-desc'>
+                        The foundation of predictive modeling — fit a straight line through data
+                        to predict continuous outcomes using least squares optimization.
+                    </p>
+                    <div class='algo-card-tags'>
+                        <span class='algo-tag'>Supervised</span>
+                        <span class='algo-tag'>Continuous</span>
+                        <span class='algo-tag'>Beginner</span>
+                    </div>
+                    <div class='algo-card-arrow'>→</div>
+                </a>
+
+                <!-- Logistic Regression -->
+                <a href='logistic-regression.html' class='algo-card glass-card'>
+                    <div class='algo-card-badge badge-classify'>Classification</div>
+                    <div class='algo-card-icon'>📊</div>
+                    <h3 class='algo-card-title'>Logistic Regression</h3>
+                    <p class='algo-card-desc'>
+                        The go-to algorithm for binary classification — learn how the sigmoid
+                        function transforms linear outputs into probabilities.
+                    </p>
+                    <div class='algo-card-tags'>
+                        <span class='algo-tag'>Supervised</span>
+                        <span class='algo-tag'>Binary</span>
+                        <span class='algo-tag'>Beginner</span>
+                    </div>
+                    <div class='algo-card-arrow'>→</div>
+                </a>
+
+                <!-- KNN (Coming Soon) -->
+                <div class='algo-card glass-card algo-card-soon'>
+                    <div class='algo-card-badge badge-classify'>Classification</div>
+                    <div class='algo-card-icon'>🔍</div>
+                    <h3 class='algo-card-title'>K-Nearest Neighbors</h3>
+                    <p class='algo-card-desc'>
+                        Instance-based learning that classifies new data points based on
+                        similarity to their closest neighbors in feature space.
+                    </p>
+                    <div class='algo-card-tags'>
+                        <span class='algo-tag'>Supervised</span>
+                        <span class='algo-tag'>Non-parametric</span>
+                    </div>
+                    <div class='algo-soon-overlay'>
+                        <span>Coming Soon</span>
+                    </div>
+                </div>
+
+                <!-- Decision Tree (Coming Soon) -->
+                <div class='algo-card glass-card algo-card-soon'>
+                    <div class='algo-card-badge badge-both'>Both</div>
+                    <div class='algo-card-icon'>🌳</div>
+                    <h3 class='algo-card-title'>Decision Tree</h3>
+                    <p class='algo-card-desc'>
+                        Intuitive tree-based model that splits data using feature thresholds
+                        to make predictions through a series of decisions.
+                    </p>
+                    <div class='algo-card-tags'>
+                        <span class='algo-tag'>Supervised</span>
+                        <span class='algo-tag'>Interpretable</span>
+                    </div>
+                    <div class='algo-soon-overlay'>
+                        <span>Coming Soon</span>
+                    </div>
+                </div>
+
+                <!-- SVM (Coming Soon) -->
+                <div class='algo-card glass-card algo-card-soon'>
+                    <div class='algo-card-badge badge-classify'>Classification</div>
+                    <div class='algo-card-icon'>⚔️</div>
+                    <h3 class='algo-card-title'>Support Vector Machine</h3>
+                    <p class='algo-card-desc'>
+                        Find the optimal hyperplane that maximally separates classes using
+                        the kernel trick for non-linear decision boundaries.
+                    </p>
+                    <div class='algo-card-tags'>
+                        <span class='algo-tag'>Supervised</span>
+                        <span class='algo-tag'>Kernel Methods</span>
+                    </div>
+                    <div class='algo-soon-overlay'>
+                        <span>Coming Soon</span>
+                    </div>
+                </div>
+
+                <!-- K-Means (Coming Soon) -->
+                <div class='algo-card glass-card algo-card-soon'>
+                    <div class='algo-card-badge badge-cluster'>Clustering</div>
+                    <div class='algo-card-icon'>🎯</div>
+                    <h3 class='algo-card-title'>K-Means Clustering</h3>
+                    <p class='algo-card-desc'>
+                        Unsupervised partitioning algorithm that groups data into K clusters
+                        by iteratively updating cluster centroids.
+                    </p>
+                    <div class='algo-card-tags'>
+                        <span class='algo-tag'>Unsupervised</span>
+                        <span class='algo-tag'>Clustering</span>
+                    </div>
+                    <div class='algo-soon-overlay'>
+                        <span>Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class='footer'>
+        <div class='container'>
+            <p>Built with ❤️ for learning · All computations run locally in your browser</p>
+        </div>
+    </footer>
+
+    <script src='main.js'></script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semi-Supervised GANs (SGAN) — Into the Algorithm</title>
+    <meta name="description" content="Master Semi-Supervised Generative Adversarial Networks (SGAN) with K+1 categorical discriminator objectives, latent space generators, PyTorch code explainer, and real-time adversarial labs.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1" style="background: radial-gradient(circle, #a855f7 0%, transparent 70%);"></div>
+        <div class="orb orb-2" style="background: radial-gradient(circle, #ec4899 0%, transparent 70%);"></div>
+        <div class="orb orb-3" style="background: radial-gradient(circle, #3b82f6 0%, transparent 70%);"></div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🎨</span>
+            <span>SGAN</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Overview</a></li>
+            <li><a href="#theory">Theory</a></li>
+            <li><a href="#code">Python Code</a></li>
+            <li><a href="#sample">Sample Dataset</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- SECTION 1: HERO OVERVIEW -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Generative Semi-Supervised Learning</p>
+                <h1 class="hero-title">
+                    <span class="title-line">SEMI-SUPERVISED</span>
+                    <span class="title-line accent" style="background: linear-gradient(135deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">GANs (SGAN)</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Transform standard binary discriminators into (K+1)-class classifiers, leveraging adversarial generator manifolds to boost classification accuracy from minimal seed data.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: HOUSE OF KNOWLEDGE & THEORY -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Theory & Foundations</span>
+                <h2 class="section-title">House of Knowledge</h2>
+                <p class="section-desc">K+1 categorical objectives, feature matching, and joint supervised-unsupervised adversarial losses.</p>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>1. (K+1) Discriminator Formulation</h3>
+                    <p>Discriminator outputs Softmax probabilities over \(K\) real categories plus an extra \((K+1)\)-th class for generated fake samples:</p>
+                    <div class="math-block">
+                        $$P_D(y = k \mid x) = \frac{\exp(l_k)}{\sum_{j=1}^{K+1} \exp(l_j)}$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>2. Supervised Loss (\(\mathcal{L}_{supervised}\))</h3>
+                    <p>Standard categorical cross-entropy evaluated exclusively over the sparse labeled seed samples \((x, y) \sim p_{data}\):</p>
+                    <div class="math-block">
+                        $$\mathcal{L}_{supervised} = -\mathbb{E}_{(x, y) \sim p_{data}} \left[ \log P_D(y \mid x, y \le K) \right]$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🔄</div>
+                    <h3>3. Unsupervised Loss (\(\mathcal{L}_{unsupervised}\))</h3>
+                    <p>Binary real-vs-fake objective over all unlabeled samples \(x \sim p_{data}\) vs generated samples \(G(z)\):</p>
+                    <div class="math-block">
+                        $$\mathcal{L}_{unsupervised} = -\mathbb{E}_{x \sim p_{data}} [\log(1 - P_D(y = K+1 \mid x))] - \mathbb{E}_{z \sim p_z} [\log P_D(y = K+1 \mid G(z))]$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🔮</div>
+                    <h3>4. Feature Matching Generator Objective</h3>
+                    <p>Generator minimizes distance between expected intermediate discriminator feature representations \(\mathbf{f}(x)\):</p>
+                    <div class="math-block">
+                        $$\mathcal{L}_G = \left\| \mathbb{E}_{x \sim p_{data}} [\mathbf{f}(x)] - \mathbb{E}_{z \sim p_z} [\mathbf{f}(G(z))] \right\|_2^2$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why does a Generative Adversarial prior improve classification?</h4>
+                        <p>The Generator forces the Discriminator to learn decision boundaries that lie strictly outside the true data manifold. Fake samples push class decision boundaries into sparse, low-density regions.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: How to prevent Discriminator Collapse in SGAN?</h4>
+                        <p>Use Feature Matching loss for Generator optimization instead of classic minimax cross-entropy, and apply spectral normalization to Discriminator layers.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: SGAN vs Standard GAN vs VAE</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Discriminator Outputs</th>
+                            <th>Semi-Supervised Support</th>
+                            <th>Primary Focus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Semi-Supervised GAN</strong></td>
+                            <td>\(K+1\) Classes (K Real + Fake)</td>
+                            <td>Native & State-of-the-Art</td>
+                            <td>High-accuracy classification with sparse labels</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Standard DCGAN</strong></td>
+                            <td>1 Binary Value (Real / Fake)</td>
+                            <td>None (Unsupervised only)</td>
+                            <td>Photorealistic image synthesis</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Variational Autoencoder</strong></td>
+                            <td>Reconstruction MSE Loss</td>
+                            <td>Requires M2 Model Extension</td>
+                            <td>Explicit latent density estimation</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SECTION 3: INTERACTIVE LINE-BY-LINE CODE EXPLAINER -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / PyTorch Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(236,72,153,0.15); border:1px solid #ec4899; color:#ec4899; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">sgan_pytorch.py • PyTorch 2.1</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive"></div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Modules Setup (L1–6)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Supervised Loss (L7–11)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Unsupervised Real/Fake (L12–17)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Feature Match (L18–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: SAMPLE DATASET & DEMO -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Sample Dataset & Model Fit</h2>
+                <p class="section-desc">Track Discriminator supervised loss and Generator feature matching loss across epochs.</p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose Dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="mnist">🔢 Semi-Supervised MNIST (100 Labels)</option>
+                    <option value="cifar">🖼️ Semi-Supervised CIFAR-10 (500 Labels)</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="trainSampleBtn">Train Epoch</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Latent Generator Samples Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>Sample #</th><th>Latent Vector (\(z\))</th><th>D(K+1) Score</th><th>Predicted Class</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics">
+                <div class="metric-card glass-card"><span class="metric-label">Epoch</span><span class="metric-value" id="metricEpoch">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Supervised Loss</span><span class="metric-value" id="metricSupLoss">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Unsupervised Loss</span><span class="metric-value" id="metricUnsupLoss">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Val Accuracy</span><span class="metric-value" id="metricValAcc">—</span></div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts">
+                <div class="chart-card glass-card">
+                    <h4>Discriminator vs Generator Loss</h4>
+                    <canvas id="chartLoss"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Validation Accuracy Curve</h4>
+                    <canvas id="chartAcc"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: INTERACTIVE VISUAL PLAYGROUND -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Lab</span>
+                <h2 class="section-title">SGAN Latent & Boundary Playground</h2>
+                <p class="section-desc">Visualize Generator synthetic samples (stars) reshaping Discriminator boundaries around seed points.</p>
+            </div>
+
+            <div class="playground-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:1.5rem;">
+                <div class="glass-card" style="padding:1rem;">
+                    <canvas id="sganCanvas" width="650" height="500" style="width:100%; border-radius:10px; background:#0b0f19; cursor:crosshair;"></canvas>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">Click canvas to add real seed point. Active: <strong id="activeToolLabel" style="color:#a855f7;">Class 0 Seed</strong></span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-sm btn-outline" id="btnTrainStep">⚡ Train 5 Epochs</button>
+                            <button class="btn btn-sm btn-outline" id="btnResetPlayground">🔄 Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding:1.25rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem;">Control Panel</h3>
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Add Point Tool:</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-primary mode-btn active" data-mode="class0">Purple (Class 0)</button>
+                            <button class="btn btn-sm mode-btn" data-mode="class1" style="background:#ec4899; border-color:#ec4899;">Pink (Class 1)</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Generator Weight (\(\lambda_G\)):</span>
+                            <span id="valWeight" style="font-weight:700; color:#a855f7;">1.0</span>
+                        </div>
+                        <input type="range" id="sliderWeight" min="0.1" max="5.0" step="0.1" value="1.0" style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Fake Sample Ratio:</span>
+                            <span id="valFake" style="font-weight:700; color:#ec4899;">20</span>
+                        </div>
+                        <input type="range" id="sliderFake" min="5" max="50" step="5" value="20" style="width:100%;">
+                    </div>
+
+                    <div style="background:rgba(0,0,0,0.3); padding:0.85rem; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Epoch Count: <strong id="lblEpoch" style="color:#ffffff;">Epoch 0</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container" style="text-align:center; padding:2rem 0; color:var(--text-secondary); font-size:0.85rem;">
+            Into the Algorithm • Semi-Supervised GANs (SGAN) Visual Guide
+        </div>
+    </footer>
+
+    <script src="sgan-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

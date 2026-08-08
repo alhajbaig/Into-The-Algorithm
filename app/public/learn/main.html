@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Algorithm Lab — Into the Algorithm</title>
+    <meta name='description' content='Explore machine learning algorithms interactively with beautiful visualizations, mathematical intuition, and hands-on playgrounds.'>
+    <link rel='preconnect' href='https://fonts.googleapis.com'>
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap' rel='stylesheet'>
+    <link rel='stylesheet' href='styles.css'>
+    <style>
+        /* Premium Canvas & Ambient Layer */
+        #neuralBgCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+
+        .ambient-bg::after {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background-image: 
+            radial-gradient(circle at 50% 30%, rgba(96, 165, 250, 0.08) 0%, transparent 60%),
+            linear-gradient(rgba(96, 165, 250, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(96, 165, 250, 0.03) 1px, transparent 1px);
+          background-size: 100% 100%, 50px 50px, 50px 50px;
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        /* 3D Scroll Reveal & Card Glows */
+        .algo-card {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            will-change: transform, opacity;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+        }
+
+        .algo-card.reveal-scroll {
+            opacity: 0;
+            transform: translateY(60px) scale(0.95) rotateX(10deg);
+        }
+
+        .algo-card.reveal-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1) rotateX(0deg);
+        }
+
+        .algo-card:hover {
+            transform: translateY(-8px) scale(1.02) rotateX(2deg) rotateY(-1deg);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(96, 165, 250, 0.25);
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+
+        /* Section Title Glow */
+        .section-header .section-title {
+            background: linear-gradient(135deg, #ffffff 30%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animated Neural Mesh Canvas -->
+    <canvas id="neuralBgCanvas"></canvas>
+
+    <div class='ambient-bg'>
+        <div class='orb orb-1'></div>
+        <div class='orb orb-2'></div>
+        <div class='orb orb-3'></div>
+    </div>
+
+    <nav class='navbar' id='navbar'>
+        <a href='/' class='back-link'>← Hub</a>
+        <div class='nav-brand'>
+            <span class='nav-icon'>🧠</span>
+            <span>Algorithm Lab</span>
+        </div>
+        <ul class='nav-links'>
+            <li><a href='#hero'>Home</a></li>
+            <li><a href='ml_prerequisites.html'>Prerequisites</a></li>
+            <li><a href='#algorithms'>Algorithms</a></li>
+            <li><a href='/quest'>ML Quest</a></li>
+        </ul>
+    </nav>
+
+    <section class='hero' id='hero'>
+        <div class='hero-content' style='text-align:center; flex-direction:column;'>
+            <div class='hero-text' style='text-align:center;'>
+                <p class='hero-tag'>Into the Algorithm · Visualize</p>
+                <h1 class='hero-title'>
+                    <span class='title-line'>MACHINE LEARNING</span>
+                    <span class='title-line accent'>ALGORITHM LAB</span>
+                </h1>
+                <p class='hero-subtitle' style='margin-left:auto; margin-right:auto;'>
+                    Master ML algorithms through interactive visualizations, real-time training,
+                    and hands-on experimentation — then practice interview skills in ML Quest.
+                </p>
+                <div class='hero-cta' style='justify-content:center; gap: 16px; display: flex; flex-wrap: wrap;'>
+                    <a href='#algorithms' class='btn btn-primary'>Explore Algorithms</a>
+                    <a href='ml_prerequisites.html' class='btn btn-outline'>Field Notes</a>
+                    <a href='/quest' class='btn btn-outline'>Play ML Quest</a>
+                </div>
+            </div>
+        </div>
+        <div class='scroll-indicator'>
+            <span>Scroll to explore</span>
+            <div class='scroll-arrow'></div>
+        </div>
+    </section>
+
+    <section class='section' id='algorithms'>
+        <div class='container'>
+            <div class='section-header'>
+                <span class='section-tag'>Interactive Lab & Theory</span>
+                <h2 class='section-title'>Explore ML Learning Paradigms</h2>
+                <p class='section-desc'>
+                    Select a learning paradigm below or browse algorithms categorized by how models process data, optimize parameters, and generate predictions.
+                </p>
+            </div>
+
+            <!-- Paradigm Filter Bar -->
+            <div class="paradigm-filter-wrapper">
+                <button class="paradigm-filter-btn active" data-paradigm="all">
+                    <span>✨ All Paradigms</span>
+                </button>
+                <button class="paradigm-filter-btn" data-paradigm="supervised">
+                    <span>🎯 Supervised</span>
+                </button>
+                <button class="paradigm-filter-btn" data-paradigm="unsupervised">
+                    <span>🌀 Unsupervised</span>
+                </button>
+                <button class="paradigm-filter-btn" data-paradigm="reinforcement">
+                    <span>🎮 Reinforcement</span>
+                </button>
+                <button class="paradigm-filter-btn" data-paradigm="semi-supervised">
+                    <span>⚖️ Semi-Supervised</span>
+                </button>
+                <button class="paradigm-filter-btn" data-paradigm="self-supervised">
+                    <span>🧩 Self-Supervised</span>
+                </button>
+                <button class="paradigm-filter-btn" data-paradigm="online">
+                    <span>⚡ Online</span>
+                </button>
+                <button class="paradigm-filter-btn" data-paradigm="batch">
+                    <span>📦 Batch</span>
+                </button>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 PARADIGM 1: SUPERVISED LEARNING
+            ═══════════════════════════════════════════ -->
+            <div class="paradigm-category-block" data-paradigm="supervised" id="supervised">
+                <div class="paradigm-category-header">
+                    <div class="paradigm-header-left">
+                        <div class="paradigm-icon-badge" style="background:rgba(96,165,250,0.12); color:#60a5fa;">🎯</div>
+                        <div class="paradigm-title-group">
+                            <h3>Supervised Learning</h3>
+                            <p>Models trained on paired input-target datasets (X, y) to learn continuous regression mappings or discrete classification decision boundaries.</p>
+                        </div>
+                    </div>
+                    <span class="paradigm-count-tag">6 Algorithms</span>
+                </div>
+
+                <div class="algo-grid">
+                    <!-- 1. Linear Regression -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">📈</div>
+                            <div class="algo-card-badge">Regression</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Linear Regression</h3>
+                            <p class="algo-card-desc">
+                                Fits an optimal hyper-plane through continuous data using least squares optimization to predict continuous target values y = WᵀX + b.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Supervised</span>
+                                <span class="algo-tag">Continuous</span>
+                                <span class="algo-tag">Least Squares</span>
+                            </div>
+                            <a href="index.html" class="algo-card-btn">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 2. Logistic Regression -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">📊</div>
+                            <div class="algo-card-badge badge-classify">Classification</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Logistic Regression</h3>
+                            <p class="algo-card-desc">
+                                Maps linear combinations of features to probabilistic outputs [0, 1] using the Sigmoid activation function σ(z).
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Supervised</span>
+                                <span class="algo-tag">Binary / LogLoss</span>
+                                <span class="algo-tag">Probabilistic</span>
+                            </div>
+                            <a href="logistic-regression.html" class="algo-card-btn">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 3. K-Nearest Neighbors -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🔍</div>
+                            <div class="algo-card-badge badge-classify" style="background: rgba(245,158,11,0.15); color: #f59e0b;">Lazy Classifier</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">K-Nearest Neighbors</h3>
+                            <p class="algo-card-desc">
+                                Instance-based non-parametric learning that assigns labels based on Euclidean or Manhattan proximity to K nearest neighbor samples.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Supervised</span>
+                                <span class="algo-tag">Distance Metric</span>
+                                <span class="algo-tag">Non-Parametric</span>
+                            </div>
+                            <a href="knn.html" class="algo-card-btn">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 4. Decision Tree -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🌳</div>
+                            <div class="algo-card-badge badge-both">Tree Splitter</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Decision Tree</h3>
+                            <p class="algo-card-desc">
+                                Recursive axis-aligned partitioning of feature spaces using Information Gain (Entropy) or Gini Impurity reduction metrics.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Supervised</span>
+                                <span class="algo-tag">Gini Impurity</span>
+                                <span class="algo-tag">Interpretable</span>
+                            </div>
+                            <a href="decision-tree.html" class="algo-card-btn">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 5. Support Vector Machine -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">⚔️</div>
+                            <div class="algo-card-badge badge-classify">Max Margin</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Support Vector Machine</h3>
+                            <p class="algo-card-desc">
+                                Finds maximum-margin decision hyperplanes by solving dual quadratic programming with Kernel functions (RBF, Polynomial).
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Supervised</span>
+                                <span class="algo-tag">Kernel Trick</span>
+                                <span class="algo-tag">Convex Opt</span>
+                            </div>
+                            <a href="svm.html" class="algo-card-btn">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 6. Random Forest & XGBoost -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🌲</div>
+                            <div class="algo-card-badge" style="background:rgba(52,211,153,0.15); color:#34d399;">Ensemble</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Random Forest & XGBoost</h3>
+                            <p class="algo-card-desc">
+                                Ensemble architectures combining bootstrapped decision trees (Bagging) or sequential residual minimization (Gradient Boosting).
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Supervised</span>
+                                <span class="algo-tag">Boosting</span>
+                                <span class="algo-tag">Bagging</span>
+                            </div>
+                            <a href="random-forest.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(52,211,153,0.2), rgba(16,185,129,0.3)); border-color:rgba(52,211,153,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 PARADIGM 2: UNSUPERVISED LEARNING
+            ═══════════════════════════════════════════ -->
+            <div class="paradigm-category-block" data-paradigm="unsupervised" id="unsupervised">
+                <div class="paradigm-category-header">
+                    <div class="paradigm-header-left">
+                        <div class="paradigm-icon-badge" style="background:rgba(167,139,250,0.12); color:#a78bfa;">🌀</div>
+                        <div class="paradigm-title-group">
+                            <h3>Unsupervised Learning</h3>
+                            <p>Uncovering latent geometric structures, hidden density clusters, and orthogonal subspace projections directly from unlabeled feature vectors X.</p>
+                        </div>
+                    </div>
+                    <span class="paradigm-count-tag" style="color:#a78bfa; border-color:rgba(167,139,250,0.25); background:rgba(167,139,250,0.08);">5 Algorithms</span>
+                </div>
+
+                <div class="algo-grid">
+                    <!-- K-Means -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🎯</div>
+                            <div class="algo-card-badge badge-cluster">Centroids</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">K-Means Clustering</h3>
+                            <p class="algo-card-desc">
+                                Iteratively partitions data into K spherical clusters by minimizing intra-cluster squared Euclidean distance to centroids.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Unsupervised</span>
+                                <span class="algo-tag">Centroids</span>
+                                <span class="algo-tag">Clustering</span>
+                            </div>
+                            <a href="kmeans.html" class="algo-card-btn">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- PCA -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">📐</div>
+                            <div class="algo-card-badge" style="background:rgba(167,139,250,0.15); color:#a78bfa;">Reduction</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Principal Component Analysis</h3>
+                            <p class="algo-card-desc">
+                                Projects high-dimensional feature spaces onto orthogonal eigenvector directions maximizing total variance.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Unsupervised</span>
+                                <span class="algo-tag">Eigenvectors</span>
+                                <span class="algo-tag">SVD</span>
+                            </div>
+                            <a href="pca.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(167,139,250,0.2), rgba(139,92,246,0.3)); border-color:rgba(167,139,250,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Hierarchical -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🌿</div>
+                            <div class="algo-card-badge" style="background:rgba(244,114,182,0.15); color:#f472b6;">Hierarchy</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Hierarchical Clustering</h3>
+                            <p class="algo-card-desc">
+                                Builds bottom-up dendrogram hierarchies linking data clusters via Ward, Single, or Complete linkage distance functions.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Unsupervised</span>
+                                <span class="algo-tag">Dendrogram</span>
+                                <span class="algo-tag">Agglomerative</span>
+                            </div>
+                            <a href="hierarchical.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(244,114,182,0.2), rgba(236,72,153,0.3)); border-color:rgba(244,114,182,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- DBSCAN -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🗺️</div>
+                            <div class="algo-card-badge" style="background:rgba(251,191,36,0.15); color:#fbbf24;">Density</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">DBSCAN Clustering</h3>
+                            <p class="algo-card-desc">
+                                Identifies arbitrary-shaped dense point clusters and robustly isolates noisy outliers using ε-neighborhoods.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Unsupervised</span>
+                                <span class="algo-tag">Density-Based</span>
+                                <span class="algo-tag">Noise Filtering</span>
+                            </div>
+                            <a href="dbscan.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.3)); border-color:rgba(251,191,36,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- t-SNE & UMAP -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🌌</div>
+                            <div class="algo-card-badge" style="background:rgba(167,139,250,0.15); color:#a78bfa;">Manifold</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">t-SNE & UMAP</h3>
+                            <p class="algo-card-desc">
+                                Non-linear manifold embedding techniques converting high-dimensional distance probabilities into low-dimensional visual maps.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Unsupervised</span>
+                                <span class="algo-tag">Non-Linear</span>
+                                <span class="algo-tag">Embeddings</span>
+                            </div>
+                            <a href="tsne-umap.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(56,189,248,0.2), rgba(99,102,241,0.3)); border-color:rgba(56,189,248,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 PARADIGM 3: REINFORCEMENT LEARNING
+            ═══════════════════════════════════════════ -->
+            <div class="paradigm-category-block" data-paradigm="reinforcement" id="reinforcement">
+                <div class="paradigm-category-header">
+                    <div class="paradigm-header-left">
+                        <div class="paradigm-icon-badge" style="background:rgba(251,191,36,0.12); color:#fbbf24;">🎮</div>
+                        <div class="paradigm-title-group">
+                            <h3>Reinforcement Learning</h3>
+                            <p>Goal-directed autonomous agents optimizing sequential decision policies π(a|s) through environment state rewards and temporal difference errors.</p>
+                        </div>
+                    </div>
+                    <span class="paradigm-count-tag" style="color:#fbbf24; border-color:rgba(251,191,36,0.25); background:rgba(251,191,36,0.08);">3 Algorithms</span>
+                </div>
+
+                <div class="algo-grid">
+                    <!-- Q-Learning -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🤖</div>
+                            <div class="algo-card-badge" style="background:rgba(251,191,36,0.15); color:#fbbf24;">Q-Values</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Q-Learning (Model-Free)</h3>
+                            <p class="algo-card-desc">
+                                Off-policy temporal difference algorithm updating state-action value table Q(s,a) via Bellman optimality equations.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Reinforcement</span>
+                                <span class="algo-tag">Model-Free</span>
+                                <span class="algo-tag">Q-Table</span>
+                            </div>
+                            <a href="q-learning.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.3)); border-color:rgba(251,191,36,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- DQN -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🧠</div>
+                            <div class="algo-card-badge" style="background:rgba(129,140,248,0.15); color:#818cf8;">Deep RL</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Deep Q-Networks (DQN)</h3>
+                            <p class="algo-card-desc">
+                                Neural network action-value approximation combining Experience Replay buffers and Target Networks to stabilize learning.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Reinforcement</span>
+                                <span class="algo-tag">Deep Learning</span>
+                                <span class="algo-tag">Replay Buffer</span>
+                            </div>
+                            <a href="dqn.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(129,140,248,0.2), rgba(79,70,229,0.3)); border-color:rgba(129,140,248,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- PPO -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🎯</div>
+                            <div class="algo-card-badge" style="background:rgba(16,185,129,0.15); color:#10b981;">Policy Gradient</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Proximal Policy Optimization</h3>
+                            <p class="algo-card-desc">
+                                State-of-the-art policy gradient optimization using clipped surrogate objectives to maintain stable updates (powering RLHF).
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Reinforcement</span>
+                                <span class="algo-tag">Policy Gradient</span>
+                                <span class="algo-tag">RLHF</span>
+                            </div>
+                            <a href="ppo.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.3)); border-color:rgba(16,185,129,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 PARADIGM 4: SEMI-SUPERVISED LEARNING
+            ═══════════════════════════════════════════ -->
+            <div class="paradigm-category-block" data-paradigm="semi-supervised" id="semi-supervised">
+                <div class="paradigm-category-header">
+                    <div class="paradigm-header-left">
+                        <div class="paradigm-icon-badge" style="background:rgba(52,211,153,0.12); color:#34d399;">⚖️</div>
+                        <div class="paradigm-title-group">
+                            <h3>Semi-Supervised Learning</h3>
+                            <p>Harnessing a small quantity of human-annotated ground truth alongside vast pools of unannotated data for data-efficient learning.</p>
+                        </div>
+                    </div>
+                    <span class="paradigm-count-tag" style="color:#34d399; border-color:rgba(52,211,153,0.25); background:rgba(52,211,153,0.08);">3 Algorithms</span>
+                </div>
+
+                <div class="algo-grid">
+                    <!-- Self Training -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🏷️</div>
+                            <div class="algo-card-badge" style="background:rgba(52,211,153,0.15); color:#34d399;">Pseudo-Labels</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Self-Training & Pseudo-Labeling</h3>
+                            <p class="algo-card-desc">
+                                Trains an initial model on gold labeled data, assigns pseudo-labels to high-confidence predictions on unlabeled data, and retrains recursively.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Semi-Supervised</span>
+                                <span class="algo-tag">Pseudo-Labels</span>
+                                <span class="algo-tag">Confidence Mask</span>
+                            </div>
+                            <a href="semi-supervised.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(52,211,153,0.2), rgba(16,185,129,0.3)); border-color:rgba(52,211,153,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Label Propagation -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🕸️</div>
+                            <div class="algo-card-badge" style="background:rgba(52,211,153,0.15); color:#34d399;">Graph Propagation</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Label Propagation</h3>
+                            <p class="algo-card-desc">
+                                Propagates ground-truth node labels through dense affinity similarity graph matrices based on transition probabilities.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Semi-Supervised</span>
+                                <span class="algo-tag">Graph Theory</span>
+                                <span class="algo-tag">Affinity Matrix</span>
+                            </div>
+                            <a href="label-propagation.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(52,211,153,0.2), rgba(16,185,129,0.3)); border-color:rgba(52,211,153,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Semi-Supervised GANs -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🎭</div>
+                            <div class="algo-card-badge" style="background:rgba(52,211,153,0.15); color:#34d399;">Adversarial</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Semi-Supervised GANs</h3>
+                            <p class="algo-card-desc">
+                                Discriminator architecture predicting K+1 output classes (K real target classes plus 1 generated fake class).
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Semi-Supervised</span>
+                                <span class="algo-tag">GANs</span>
+                                <span class="algo-tag">K+1 Output</span>
+                            </div>
+                            <a href="sgan.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(52,211,153,0.2), rgba(16,185,129,0.3)); border-color:rgba(52,211,153,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 PARADIGM 5: SELF-SUPERVISED LEARNING
+            ═══════════════════════════════════════════ -->
+            <div class="paradigm-category-block" data-paradigm="self-supervised" id="self-supervised">
+                <div class="paradigm-category-header">
+                    <div class="paradigm-header-left">
+                        <div class="paradigm-icon-badge" style="background:rgba(244,114,182,0.12); color:#f472b6;">🧩</div>
+                        <div class="paradigm-title-group">
+                            <h3>Self-Supervised Learning</h3>
+                            <p>Generating supervisory signals autonomously directly from raw data by solving artificial pretext tasks (contrastive matching, masking reconstruction).</p>
+                        </div>
+                    </div>
+                    <span class="paradigm-count-tag" style="color:#f472b6; border-color:rgba(244,114,182,0.25); background:rgba(244,114,182,0.08);">3 Algorithms</span>
+                </div>
+
+                <div class="algo-grid">
+                    <!-- Contrastive -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🧩</div>
+                            <div class="algo-card-badge" style="background:rgba(244,114,182,0.15); color:#f472b6;">Contrastive</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">SimCLR & MoCo</h3>
+                            <p class="algo-card-desc">
+                                Maximizes cosine representation agreement between augmented views of the same image while repelling negative sample pairs using InfoNCE loss.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Self-Supervised</span>
+                                <span class="algo-tag">InfoNCE</span>
+                                <span class="algo-tag">Augmentation</span>
+                            </div>
+                            <a href="simclr-moco.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(244,114,182,0.2), rgba(236,72,153,0.3)); border-color:rgba(244,114,182,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- BERT -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🔤</div>
+                            <div class="algo-card-badge" style="background:rgba(244,114,182,0.15); color:#f472b6;">Masked LM</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">BERT & Masked Autoencoders</h3>
+                            <p class="algo-card-desc">
+                                Masks random sub-tokens or visual patches and trains Transformer backbones to reconstruct missing tokens from context.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Self-Supervised</span>
+                                <span class="algo-tag">Transformers</span>
+                                <span class="algo-tag">BERT</span>
+                            </div>
+                            <a href="bert-mae.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(244,114,182,0.2), rgba(236,72,153,0.3)); border-color:rgba(244,114,182,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- CLIP & DINO -->
+                    <div class="algo-card glass-card reveal-scroll">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">👁️</div>
+                            <div class="algo-card-badge" style="background:rgba(244,114,182,0.15); color:#f472b6;">Multimodal</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">CLIP & DINO v2</h3>
+                            <p class="algo-card-desc">
+                                Joint text-image contrastive embedding alignment and Vision Transformer self-distillation discovering crisp semantic object boundaries.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Self-Supervised</span>
+                                <span class="algo-tag">Multimodal</span>
+                                <span class="algo-tag">Vision Transformers</span>
+                            </div>
+                            <a href="clip-dino.html" class="algo-card-btn" style="background:linear-gradient(135deg, rgba(244,114,182,0.2), rgba(236,72,153,0.3)); border-color:rgba(244,114,182,0.4);">
+                                <span>Launch Playground</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 PARADIGM 6: ONLINE LEARNING
+            ═══════════════════════════════════════════ -->
+            <div class="paradigm-category-block" data-paradigm="online" id="online">
+                <div class="paradigm-category-header">
+                    <div class="paradigm-header-left">
+                        <div class="paradigm-icon-badge" style="background:rgba(56,189,248,0.12); color:#38bdf8;">⚡</div>
+                        <div class="paradigm-title-group">
+                            <h3>Online Learning</h3>
+                            <p>Updating model parameter vectors sequentially sample-by-sample or in micro-batches in real time as data streams into production.</p>
+                        </div>
+                    </div>
+                    <span class="paradigm-count-tag" style="color:#38bdf8; border-color:rgba(56,189,248,0.25); background:rgba(56,189,248,0.08);">3 Algorithms</span>
+                </div>
+
+                <div class="algo-grid">
+                    <!-- Streaming SGD -->
+                    <div class="algo-card glass-card reveal-scroll" data-algo-modal="sgd_streaming" style="cursor:pointer;">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">⚡</div>
+                            <div class="algo-card-badge" style="background:rgba(56,189,248,0.15); color:#38bdf8;">Streaming</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Streaming SGD</h3>
+                            <p class="algo-card-desc">
+                                Computes instantaneous gradient updates per individual sample θ_t+1 = θ_t - η ∇ L_i(θ_t) over real-time streaming data queues.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Online</span>
+                                <span class="algo-tag">Streaming SGD</span>
+                                <span class="algo-tag">Low Latency</span>
+                            </div>
+                            <button class="algo-card-btn" style="background:linear-gradient(135deg, rgba(56,189,248,0.2), rgba(14,165,233,0.3)); border-color:rgba(56,189,248,0.4);">
+                                <span>Learn Principles</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- FTRL -->
+                    <div class="algo-card glass-card reveal-scroll" data-algo-modal="ftrl" style="cursor:pointer;">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🎯</div>
+                            <div class="algo-card-badge" style="background:rgba(56,189,248,0.15); color:#38bdf8;">Google FTRL</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">FTRL-Proximal</h3>
+                            <p class="algo-card-desc">
+                                High-performance online learning algorithm designed for real-time click-through rate (CTR) prediction, producing sparse weight vectors.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Online</span>
+                                <span class="algo-tag">L1 Sparsity</span>
+                                <span class="algo-tag">Ad Click CTR</span>
+                            </div>
+                            <button class="algo-card-btn" style="background:linear-gradient(135deg, rgba(56,189,248,0.2), rgba(14,165,233,0.3)); border-color:rgba(56,189,248,0.4);">
+                                <span>Learn Principles</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Passive-Aggressive -->
+                    <div class="algo-card glass-card reveal-scroll" data-algo-modal="sgd_streaming" style="cursor:pointer;">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🥊</div>
+                            <div class="algo-card-badge" style="background:rgba(56,189,248,0.15); color:#38bdf8;">Large Margin</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Passive-Aggressive Algo</h3>
+                            <p class="algo-card-desc">
+                                Large-margin online classifier that remains passive on correct margin predictions and aggressively updates parameters on margin violations.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Online</span>
+                                <span class="algo-tag">Margin Bound</span>
+                                <span class="algo-tag">Real-Time</span>
+                            </div>
+                            <button class="algo-card-btn" style="background:linear-gradient(135deg, rgba(56,189,248,0.2), rgba(14,165,233,0.3)); border-color:rgba(56,189,248,0.4);">
+                                <span>Learn Principles</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 PARADIGM 7: BATCH LEARNING
+            ═══════════════════════════════════════════ -->
+            <div class="paradigm-category-block" data-paradigm="batch" id="batch">
+                <div class="paradigm-category-header">
+                    <div class="paradigm-header-left">
+                        <div class="paradigm-icon-badge" style="background:rgba(232,121,249,0.12); color:#e879f9;">📦</div>
+                        <div class="paradigm-title-group">
+                            <h3>Batch Learning</h3>
+                            <p>Training models offline on complete historical datasets prior to production deployment through full-dataset matrix inversions and batch optimization passes.</p>
+                        </div>
+                    </div>
+                    <span class="paradigm-count-tag" style="color:#e879f9; border-color:rgba(232,121,249,0.25); background:rgba(232,121,249,0.08);">3 Algorithms</span>
+                </div>
+
+                <div class="algo-grid">
+                    <!-- OLS -->
+                    <div class="algo-card glass-card reveal-scroll" data-algo-modal="ols_normal_eq" style="cursor:pointer;">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">📦</div>
+                            <div class="algo-card-badge" style="background:rgba(232,121,249,0.15); color:#e879f9;">Analytical</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Ordinary Least Squares</h3>
+                            <p class="algo-card-desc">
+                                Closed-form matrix equation solver β̂ = (XᵀX)⁻¹ Xᵀy calculating exact globally optimal parameter vectors offline.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Batch</span>
+                                <span class="algo-tag">Normal Equation</span>
+                                <span class="algo-tag">Closed-Form</span>
+                            </div>
+                            <button class="algo-card-btn" style="background:linear-gradient(135deg, rgba(232,121,249,0.2), rgba(217,70,239,0.3)); border-color:rgba(232,121,249,0.4);">
+                                <span>Learn Principles</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Batch Gradient Descent -->
+                    <div class="algo-card glass-card reveal-scroll" data-algo-modal="ols_normal_eq" style="cursor:pointer;">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">🏛️</div>
+                            <div class="algo-card-badge" style="background:rgba(232,121,249,0.15); color:#e879f9;">Full Batch</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Batch Gradient Descent</h3>
+                            <p class="algo-card-desc">
+                                Computes exact deterministic loss gradient vectors averaged across 100% of historical training rows per epoch iteration step.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Batch</span>
+                                <span class="algo-tag">Deterministic</span>
+                                <span class="algo-tag">Full Matrix</span>
+                            </div>
+                            <button class="algo-card-btn" style="background:linear-gradient(135deg, rgba(232,121,249,0.2), rgba(217,70,239,0.3)); border-color:rgba(232,121,249,0.4);">
+                                <span>Learn Principles</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Full Matrix SVD -->
+                    <div class="algo-card glass-card reveal-scroll" data-algo-modal="ols_normal_eq" style="cursor:pointer;">
+                        <div class="algo-card-header">
+                            <div class="algo-card-icon-wrapper">📊</div>
+                            <div class="algo-card-badge" style="background:rgba(232,121,249,0.15); color:#e879f9;">Full SVD</div>
+                        </div>
+                        <div class="algo-card-body">
+                            <h3 class="algo-card-title">Full Matrix SVD & PCA</h3>
+                            <p class="algo-card-desc">
+                                Computes exact global dataset covariance matrix C = (1/N) XᵀX and full Singular Value Decompositions offline.
+                            </p>
+                        </div>
+                        <div class="algo-card-footer">
+                            <div class="algo-card-tags">
+                                <span class="algo-tag">Batch</span>
+                                <span class="algo-tag">Covariance</span>
+                                <span class="algo-tag">Full SVD</span>
+                            </div>
+                            <button class="algo-card-btn" style="background:linear-gradient(135deg, rgba(232,121,249,0.2), rgba(217,70,239,0.3)); border-color:rgba(232,121,249,0.4);">
+                                <span>Learn Principles</span>
+                                <span class="algo-card-btn-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 SECTION: SPECIALIZED TRACK ROADMAPS
+            ═══════════════════════════════════════════ -->
+            <div class="roadmap-section reveal-scroll" id="roadmaps">
+                <div class="section-header">
+                    <span class="section-tag">02 — Career Specializations</span>
+                    <h2 class="section-title">Specialized ML Career Roadmaps</h2>
+                    <p class="section-desc">
+                        Select your target specialization track below to inspect step-by-step milestones, mathematical requirements, and production skillsets.
+                    </p>
+                </div>
+
+                <!-- Track Switcher Tabs -->
+                <div class="track-switcher">
+                    <button class="track-tab-btn active" data-track="research">
+                        <span>🔬 Research Scientist</span>
+                        <span class="track-tab-badge">Math & Theory</span>
+                    </button>
+                    <button class="track-tab-btn" data-track="mlops">
+                        <span>⚙️ MLOps & Production</span>
+                        <span class="track-tab-badge">Engineering</span>
+                    </button>
+                    <button class="track-tab-btn" data-track="vision">
+                        <span>👁️ Computer Vision</span>
+                        <span class="track-tab-badge">Spatial AI</span>
+                    </button>
+                    <button class="track-tab-btn" data-track="llm">
+                        <span>💬 NLP & LLM Systems</span>
+                        <span class="track-tab-badge">Generative AI</span>
+                    </button>
+                    <button class="track-tab-btn" data-track="analytics">
+                        <span>📈 Predictive Analytics</span>
+                        <span class="track-tab-badge">Data Science</span>
+                    </button>
+                </div>
+
+                <!-- Roadmap Display Card -->
+                <div class="roadmap-display-card glass-card" id="roadmapDisplayContainer">
+                    <!-- Dynamic Track Content will render here via JS -->
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+                 SECTION: ML FIELD GUIDE & ENGINEER ROADMAP
+            ═══════════════════════════════════════════ -->
+            <div class="masterclass-section reveal-scroll">
+                <div class="section-header">
+                    <span class="section-tag">03 — Foundations & Career Path</span>
+                    <h2 class="section-title">The ML Engineer Field Guide</h2>
+                    <p class="section-desc">
+                        Why first-principles mathematics power modern AI, how to build a world-class career in Machine Learning, and inspiring stories from legendary AI pioneers.
+                    </p>
+                </div>
+
+                <div class="masterclass-grid">
+                    <!-- Importance of ML Algorithms -->
+                    <div class="theory-card glass-card">
+                        <div class="card-icon">⚡</div>
+                        <h3>1. Why Algorithmic First-Principles Matter</h3>
+                        <p>
+                            In the era of 100-billion parameter LLMs and automated PyTorch pipelines, understanding core mathematical algorithms from first principles is what separates senior ML architects from code copyists:
+                        </p>
+                        <ul style="margin-top:0.75rem; padding-left:1.25rem; color:var(--text-secondary); font-size:0.88rem; line-height:1.65;">
+                            <li><strong>Debugging Power:</strong> When a neural net diverges or hyperparameter search fails, first-principles intuition pinpoints gradient explosion or rank deficiency immediately.</li>
+                            <li><strong>Efficiency & Speed:</strong> Custom loss functions and vectorization tricks reduce GPU compute costs by up to 10x.</li>
+                            <li><strong>Model Interpretability:</strong> High-stakes domains (finance, medicine, law) require transparent mathematical decision boundaries over black-box predictions.</li>
+                        </ul>
+                    </div>
+
+                    <!-- What is Machine Learning? -->
+                    <div class="theory-card glass-card">
+                        <div class="card-icon">🧬</div>
+                        <h3>2. What is Machine Learning?</h3>
+                        <p>
+                            Machine Learning is the subfield of Artificial Intelligence where algorithms learn functional mapping patterns directly from data without explicit procedural programming:
+                        </p>
+                        <div style="display:flex; flex-direction:column; gap:0.75rem; margin-top:0.85rem;">
+                            <div style="background:rgba(255,255,255,0.03); padding:0.65rem 0.85rem; border-radius:8px; border:1px solid var(--border);">
+                                <strong style="color:var(--accent);">Supervised:</strong> Learns mapping \(f: X \to Y\) from labeled pairs (Regression, Classification).
+                            </div>
+                            <div style="background:rgba(255,255,255,0.03); padding:0.65rem 0.85rem; border-radius:8px; border:1px solid var(--border);">
+                                <strong style="color:var(--accent-3);">Unsupervised:</strong> Uncovers latent structures \(X \to Z\) without labels (Clustering, PCA).
+                            </div>
+                            <div style="background:rgba(255,255,255,0.03); padding:0.65rem 0.85rem; border-radius:8px; border:1px solid var(--border);">
+                                <strong style="color:var(--warning);">Reinforcement:</strong> Optimizes policy \(\pi(a|s)\) via environmental rewards (RLHF, Game Playing).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Roadmap to Becoming an ML Engineer -->
+                <div class="glass-card" style="margin-top: 1.75rem;">
+                    <h3>🚀 The Correct Roadmap to Becoming an ML Engineer</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;">Follow this structured 4-phase progression mastered by elite AI researchers:</p>
+
+                    <div class="roadmap-list">
+                        <div class="roadmap-step">
+                            <div class="roadmap-num">01</div>
+                            <div class="roadmap-step-content">
+                                <h4>Pillar 1: Mathematical Foundations</h4>
+                                <p>Master Linear Algebra (Vector projections, Eigendecomposition), Multivariable Calculus (Jacobians, Partial Gradients), and Probability & Statistics (MLE, Bayes' Rule).</p>
+                            </div>
+                        </div>
+                        <div class="roadmap-step">
+                            <div class="roadmap-num" style="background:rgba(167,139,250,0.15); color:var(--accent-2);">02</div>
+                            <div class="roadmap-step-content">
+                                <h4>Pillar 2: Core ML Algorithms from Scratch</h4>
+                                <p>Implement OLS, Logistic Regression, Decision Trees, K-Means, and SVM in pure NumPy without Scikit-Learn. Derive loss functions and backprop updates on paper.</p>
+                            </div>
+                        </div>
+                        <div class="roadmap-step">
+                            <div class="roadmap-num" style="background:rgba(52,211,153,0.15); color:var(--accent-3);">03</div>
+                            <div class="roadmap-step-content">
+                                <h4>Pillar 3: Deep Learning & PyTorch Architecture</h4>
+                                <p>Build Neural Networks, CNNs, Transformers, and Autograd engines. Understand GPU memory layout, batching, and distributed training dynamics.</p>
+                            </div>
+                        </div>
+                        <div class="roadmap-step">
+                            <div class="roadmap-num" style="background:rgba(251,191,36,0.15); color:var(--warning);">04</div>
+                            <div class="roadmap-step-content">
+                                <h4>Pillar 4: MLOps, System Design & Deployment</h4>
+                                <p>Package models into Triton / FastAPI microservices, set up continuous monitoring, handle data drift, and optimize latency via quantization & TensorRT.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-World ML Pioneers & Stories -->
+                <div style="margin-top: 2rem;">
+                    <h3 style="font-size:1.35rem; margin-bottom:0.5rem;">🌟 Real-World AI Pioneers & Achievements</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;">Lessons and breakthrough achievements from iconic Machine Learning leaders:</p>
+
+                    <div class="engineer-card-grid">
+                        <!-- 1. Andrej Karpathy -->
+                        <div class="engineer-card">
+                            <div class="engineer-photo-wrapper">
+                                <img src="/assets/pioneers/karpathy.png" alt="Andrej Karpathy" class="engineer-photo" style="object-position: center 10%;">
+                                <div class="engineer-photo-overlay"></div>
+                                <span class="engineer-photo-badge">Tesla • OpenAI</span>
+                            </div>
+                            <h4>Andrej Karpathy</h4>
+                            <div class="engineer-role">Former AI Director @ Tesla • Co-founder @ OpenAI</div>
+                            <p class="engineer-bio">
+                                Creator of Stanford's CS231n and NanoGPT. Championed building autograd engines from scratch. Demonstrated that understanding raw NumPy gradients is the ultimate superpower for debugging autonomous vision systems.
+                            </p>
+                        </div>
+
+                        <!-- 2. Dr. Fei-Fei Li -->
+                        <div class="engineer-card">
+                            <div class="engineer-photo-wrapper">
+                                <img src="/assets/pioneers/feifeili.png" alt="Dr. Fei-Fei Li" class="engineer-photo" style="object-position: center 25%;">
+                                <div class="engineer-photo-overlay"></div>
+                                <span class="engineer-photo-badge" style="color:var(--accent-2);">Stanford • ImageNet</span>
+                            </div>
+                            <h4>Dr. Fei-Fei Li</h4>
+                            <div class="engineer-role">Professor @ Stanford • Creator of ImageNet</div>
+                            <p class="engineer-bio">
+                                Recognized that machine learning models needed massive structured datasets to generalize. Built ImageNet (14M+ images), triggering the 2012 Deep Learning revolution and modern Computer Vision.
+                            </p>
+                        </div>
+
+                        <!-- 3. Dr. Yann LeCun -->
+                        <div class="engineer-card">
+                            <div class="engineer-photo-wrapper">
+                                <img src="/assets/pioneers/lecun.png" alt="Dr. Yann LeCun" class="engineer-photo" style="object-position: center 15%;">
+                                <div class="engineer-photo-overlay"></div>
+                                <span class="engineer-photo-badge" style="color:var(--accent-3);">Meta • Turing Award</span>
+                            </div>
+                            <h4>Dr. Yann LeCun</h4>
+                            <div class="engineer-role">Turing Award Winner • Chief AI Scientist @ Meta</div>
+                            <p class="engineer-bio">
+                                Invented Convolutional Neural Networks (LeNet-5) by drawing inspiration from the biological visual cortex. Proved that weight-sharing and spatial invariance enable machines to recognize real-world images.
+                            </p>
+                        </div>
+
+                        <!-- 4. Demis Hassabis -->
+                        <div class="engineer-card">
+                            <div class="engineer-photo-wrapper">
+                                <img src="/assets/pioneers/hassabis.png" alt="Demis Hassabis" class="engineer-photo" style="object-position: center 15%;">
+                                <div class="engineer-photo-overlay"></div>
+                                <span class="engineer-photo-badge" style="color:var(--warning);">DeepMind • Nobel Laureate</span>
+                            </div>
+                            <h4>Demis Hassabis</h4>
+                            <div class="engineer-role">Nobel Laureate in Chemistry • CEO @ Google DeepMind</div>
+                            <p class="engineer-bio">
+                                Combined Deep Reinforcement Learning with Monte Carlo Tree Search to create AlphaGo. Developed AlphaFold, solving the 50-year-old protein folding grand challenge in biology using structural ML algorithms.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!-- Algorithm Principles Detail Modal -->
+    <div class="algo-modal-backdrop" id="algoModalBackdrop">
+        <div class="algo-modal-content">
+            <button class="algo-modal-close" id="algoModalClose" aria-label="Close modal">✕</button>
+            <div class="algo-modal-header">
+                <div class="algo-modal-icon" id="algoModalIcon">🧠</div>
+                <div>
+                    <h3 class="algo-modal-title" id="algoModalTitle">Algorithm Name</h3>
+                    <div class="algo-modal-subtitle" id="algoModalSubtitle">Paradigm • Sub-category</div>
+                </div>
+            </div>
+            <div class="algo-modal-body" id="algoModalBody">
+                <!-- Dynamic Content via main.js -->
+            </div>
+        </div>
+    </div>
+
+    <footer class='footer'>
+        <div class='container'>
+            <p>Into the Algorithm · All computations run locally in your browser · <a href='/quest'>ML Quest</a></p>
+        </div>
+    </footer>
+
+    <script src='main.js'></script>
+    <script>
+        // Interactive Background Canvas & Scroll Interaction Controller
+        (function() {
+            const canvas = document.getElementById('neuralBgCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            // Particles
+            const particles = [];
+            const particleCount = 45;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    radius: Math.random() * 2 + 1,
+                    alpha: Math.random() * 0.5 + 0.2
+                });
+            }
+
+            function drawNeuralMesh() {
+                ctx.clearRect(0, 0, width, height);
+
+                // Update & draw particles
+                for (let i = 0; i < particleCount; i++) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0 || p.x > width) p.vx *= -1;
+                    if (p.y < 0 || p.y > height) p.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(96, 165, 250, ${p.alpha})`;
+                    ctx.fill();
+
+                    // Draw connecting lines
+                    for (let j = i + 1; j < particleCount; j++) {
+                        const p2 = particles[j];
+                        const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                        if (dist < 140) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(96, 165, 250, ${(1 - dist / 140) * 0.15})`;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(drawNeuralMesh);
+            }
+
+            drawNeuralMesh();
+
+            // Scroll Reveal Intersection Observer with Staggering
+            const scrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            document.querySelectorAll('.reveal-scroll').forEach((card, index) => {
+                card.style.transitionDelay = `${index * 0.08}s`;
+                scrollObserver.observe(card);
+            });
+        })();
+    </script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

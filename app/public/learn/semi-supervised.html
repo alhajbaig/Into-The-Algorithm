@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Training & Pseudo-Labeling — Into the Algorithm</title>
+    <meta name="description" content="Master Semi-Supervised Self-Training and Pseudo-Labeling with interactive visualizations, KaTeX math theory, Python code explainer, and real-time confidence thresholding labs.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1" style="background: radial-gradient(circle, #38bdf8 0%, transparent 70%);"></div>
+        <div class="orb orb-2" style="background: radial-gradient(circle, #818cf8 0%, transparent 70%);"></div>
+        <div class="orb orb-3" style="background: radial-gradient(circle, #c084fc 0%, transparent 70%);"></div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🏷️</span>
+            <span>Self-Training</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Overview</a></li>
+            <li><a href="#theory">Theory</a></li>
+            <li><a href="#code">Python Code</a></li>
+            <li><a href="#sample">Sample Dataset</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- SECTION 1: HERO OVERVIEW -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Semi-Supervised Learning</p>
+                <h1 class="hero-title">
+                    <span class="title-line">SELF-TRAINING &</span>
+                    <span class="title-line accent" style="background: linear-gradient(135deg, #38bdf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">PSEUDO-LABELING</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Harness vast pools of unlabeled data by training a model on seed labels, generating high-confidence pseudo-labels, and iteratively bootstrapping performance.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: HOUSE OF KNOWLEDGE & THEORY -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Theory & Foundations</span>
+                <h2 class="section-title">House of Knowledge</h2>
+                <p class="section-desc">Mathematical formulations, confidence thresholding, and production guidelines for semi-supervised self-training.</p>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>1. Supervised Seed Objective</h3>
+                    <p>Initial teacher model trains on small labeled dataset \(\mathcal{D}_L = \{(x_i, y_i)\}_{i=1}^{N_L}\) using standard Cross-Entropy loss:</p>
+                    <div class="math-block">
+                        $$\mathcal{L}_L = -\frac{1}{N_L} \sum_{i=1}^{N_L} \sum_{k=1}^K y_{i,k} \log f_\theta(x_i)_k$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>2. Confidence Thresholding (\(\tau\))</h3>
+                    <p>Unlabeled samples \(\mathcal{D}_U\) receive pseudo-labels \(\hat{y}_u = \arg\max_k f_\theta(x_u)_k\) only if prediction confidence exceeds threshold \(\tau\):</p>
+                    <div class="math-block">
+                        $$\mathbb{I}(\max_k f_\theta(x_u)_k \ge \tau) \cdot \text{CrossEntropy}(f_\theta(x_u), \hat{y}_u)$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🔄</div>
+                    <h3>3. Iterative Bootstrapping</h3>
+                    <p>Pseudo-labeled samples are augmented into training set \(\mathcal{D}_{new} = \mathcal{D}_L \cup \mathcal{D}_{pseudo}\) for student retraining across rounds:</p>
+                    <div class="math-block">
+                        $$\theta^{(t+1)} = \arg\min_\theta \left( \mathcal{L}_L(\theta) + \lambda_u \mathcal{L}_{pseudo}(\theta) \right)$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🛡️</div>
+                    <h3>4. Entropy Minimization & Regularization</h3>
+                    <p>Encourages low-entropy decision boundaries passing through sparse data regions, preventing confirmation bias and drift:</p>
+                    <div class="math-block">
+                        $$\mathcal{H}(p) = -\sum_{k=1}^K p_k \log p_k \to 0$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: What causes Confirmation Bias in Pseudo-Labeling?</h4>
+                        <p>If the seed model makes confident misclassifications early on, pseudo-labeling reinforces false beliefs, driving the student model into error spirals. Mitigation: High confidence thresholds (\(\tau \ge 0.95\)), MixUp, or Teacher-Student Consistency (FixMatch).</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: How to balance Class Imbalance in Pseudo-Labels?</h4>
+                        <p>Majority classes often dominate high-confidence predictions. Use dynamic class-wise thresholds \(\tau_c\) or temperature scaling to prevent class collapse.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: Self-Training vs Label Propagation vs SGAN</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Assumption / Mechanics</th>
+                            <th>Scalability</th>
+                            <th>Best Used When</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Self-Training</strong></td>
+                            <td>High-confidence predictions are true targets</td>
+                            <td>\(\mathcal{O}(N)\) Very High</td>
+                            <td>Vast unlabeled datasets with strong deep backbone</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Label Propagation</strong></td>
+                            <td>Graph manifold smoothness (RBF similarity)</td>
+                            <td>\(\mathcal{O}(N^2)\) Medium</td>
+                            <td>Structured low-dimensional manifold datasets</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Semi-Supervised GAN</strong></td>
+                            <td>Discriminator predicts \(K+1\) classes (K real + Fake)</td>
+                            <td>High (requires GPU)</td>
+                            <td>Complex image domains with generative priors</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SECTION 3: INTERACTIVE LINE-BY-LINE CODE EXPLAINER -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / NumPy Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(56,189,248,0.15); border:1px solid #38bdf8; color:#38bdf8; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">self_training_scratch.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive"></div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Setup & Init (L1–6)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Seed Fit (L7–11)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Pseudo-Labeling (L12–17)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Retrain & Predict (L18–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: SAMPLE DATASET & DEMO -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Sample Dataset & Model Fit</h2>
+                <p class="section-desc">Observe how pseudo-labeling expands label coverage from a tiny 10% seed set.</p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose Dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="moons">🌙 Two Moons (10% Labeled)</option>
+                    <option value="blobs">🔵 Gaussian Clusters (5% Labeled)</option>
+                    <option value="circles">⭕ Concentric Circles (10% Labeled)</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="trainSampleBtn">Run Pseudo-Labeling Round</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Sample Data Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>#</th><th>X1</th><th>X2</th><th>True Label</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics">
+                <div class="metric-card glass-card"><span class="metric-label">Labeled Points</span><span class="metric-value" id="metricLabeled">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Pseudo-Labeled</span><span class="metric-value" id="metricPseudo">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Unlabeled Left</span><span class="metric-value" id="metricUnlabeled">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Test Accuracy</span><span class="metric-value" id="metricAcc">—</span></div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts">
+                <div class="chart-card glass-card">
+                    <h4>Accuracy vs Pseudo-Label Rounds</h4>
+                    <canvas id="chartAcc"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Pseudo-Label Confidence Distribution</h4>
+                    <canvas id="chartConf"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: INTERACTIVE VISUAL PLAYGROUND -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Lab</span>
+                <h2 class="section-title">Self-Training Playground</h2>
+                <p class="section-desc">Adjust confidence threshold \(\tau\), add seed labels or unlabeled nodes, and step through self-training iterations in real-time.</p>
+            </div>
+
+            <div class="playground-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:1.5rem;">
+                <div class="glass-card" style="padding:1rem;">
+                    <canvas id="semiCanvas" width="650" height="500" style="width:100%; border-radius:10px; background:#0b0f19; cursor:crosshair;"></canvas>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">Click canvas to add point. Active Tool: <strong id="activeToolLabel" style="color:#38bdf8;">Labeled Class 0</strong></span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-sm btn-outline" id="btnStepRound">⚡ Run 1 Iteration</button>
+                            <button class="btn btn-sm btn-outline" id="btnResetPlayground">🔄 Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding:1.25rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem;">Control Panel</h3>
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Add Point Mode:</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-primary mode-btn active" data-mode="class0">Blue (Class 0)</button>
+                            <button class="btn btn-sm mode-btn" data-mode="class1" style="background:#f472b6; border-color:#f472b6;">Pink (Class 1)</button>
+                            <button class="btn btn-sm mode-btn" data-mode="unlabeled" style="background:rgba(255,255,255,0.1); grid-column:span 2;">⚪ Unlabeled Point</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Confidence Threshold (\(\tau\)):</span>
+                            <span id="valTau" style="font-weight:700; color:#38bdf8;">0.85</span>
+                        </div>
+                        <input type="range" id="sliderTau" min="0.5" max="0.98" step="0.01" value="0.85" style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Presets:</label>
+                        <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="moons">🌙 Two Moons Dataset</button>
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="blobs">🔵 Separated Blobs</button>
+                            <button class="btn btn-sm btn-outline preset-btn" data-preset="spirals">🌀 Spiral Pattern</button>
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(0,0,0,0.3); padding:0.85rem; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Current Iteration: <strong id="lblRound" style="color:#ffffff;">Round 0</strong></div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">Pseudo-Labels Added: <strong id="lblAdded" style="color:#38bdf8;">0</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container" style="text-align:center; padding:2rem 0; color:var(--text-secondary); font-size:0.85rem;">
+            Into the Algorithm • Self-Training & Pseudo-Labeling Visual Guide
+        </div>
+    </footer>
+
+    <script src="semi-supervised-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

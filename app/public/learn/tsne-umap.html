@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>t-SNE & UMAP Manifold Learning — Interactive Visual Guide & House of Knowledge</title>
+    <meta name="description" content="Master t-SNE & UMAP manifold dimensionality reduction interactively with Student-t distributions, fuzzy simplicial sets, perplexity parameters, Python code explainer, and live playgrounds.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .tsne-accent { color: #38bdf8; }
+        .tsne-gradient { 
+            background: linear-gradient(135deg, #38bdf8, #818cf8); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .tsne-btn { 
+            background: linear-gradient(135deg, #38bdf8, #6366f1) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35) !important;
+        }
+        .tsne-btn:hover { 
+            box-shadow: 0 6px 25px rgba(56, 189, 248, 0.5) !important; 
+            transform: translateY(-2px);
+        }
+
+        .code-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #060913;
+            margin-top: 1rem;
+        }
+        .code-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0a0e1a;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .code-dot-group {
+            display: flex;
+            gap: 6px;
+        }
+        .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27c93f; }
+        .code-header-title {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .code-block-interactive {
+            background: #060913;
+            padding: 1rem 0;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.8;
+            color: #e6edf3;
+            overflow-x: auto;
+            margin: 0;
+        }
+        .code-line {
+            display: flex;
+            padding: 0.25rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            border-left: 3px solid transparent;
+        }
+        .code-line:hover, .code-line.active {
+            background: rgba(56, 189, 248, 0.15);
+            border-left-color: #38bdf8;
+        }
+        .code-line.locked {
+            background: rgba(56, 189, 248, 0.28) !important;
+            border-left: 4px solid #38bdf8 !important;
+            box-shadow: inset 0 0 12px rgba(56, 189, 248, 0.2);
+        }
+        .line-num {
+            width: 30px;
+            color: #4b5563;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-right: 1.25rem;
+            flex-shrink: 0;
+        }
+        .line-content {
+            white-space: pre;
+            flex: 1;
+        }
+
+        .code-step-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .code-tab-btn {
+            padding: 0.5rem 0.85rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .code-tab-btn:hover, .code-tab-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: rgba(56, 189, 248, 0.4);
+            color: #38bdf8;
+        }
+
+        .code-explanation-panel {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            margin-top: 0.5rem;
+        }
+        .explain-line-badge {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.15);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .explain-header h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 0.5rem 0;
+        }
+        .explain-body {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 0.85rem;
+        }
+        .explain-math-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: #38bdf8;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .code-keyword { color: #ff7b72; font-weight: 600; }
+        .code-func { color: #d2a8ff; }
+        .code-comment { color: #8b949e; font-style: italic; }
+        .code-string { color: #a5d6ff; }
+        .code-num { color: #79c0ff; }
+
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.88rem;
+        }
+        .comp-table th, .comp-table td {
+            padding: 0.85rem 1.1rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .comp-table th { background: rgba(56, 189, 248, 0.12); color: #38bdf8; font-weight: 700; }
+        .comp-table td { color: var(--text-secondary); }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+        .faq-card {
+            padding: 1.25rem;
+            border-radius: var(--radius-sm);
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid var(--border);
+        }
+        .faq-card h4 { margin: 0 0 0.5rem; font-size: 0.98rem; color: #38bdf8; }
+        .faq-card p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+        #heroCanvas {
+            border-radius: var(--radius);
+            background: rgba(17, 24, 39, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .tsne-lab-wrapper {
+            display: flex;
+            gap: 2rem;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        .tsne-canvas-panel {
+            flex: 1;
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .tsne-canvas-container {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(17, 24, 39, 0.65);
+        }
+        .tsne-canvas-container canvas {
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+        }
+        .canvas-tooltip {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #ffffff;
+            background: rgba(10, 14, 26, 0.85);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tsne-controls-sidebar {
+            width: 330px;
+            min-width: 290px;
+        }
+
+        .control-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(16px);
+        }
+        .control-block h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .slider-group {
+            margin-bottom: 1.25rem;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+        .slider-val {
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            font-weight: 700;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            accent-color: #38bdf8;
+            cursor: pointer;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .preset-btn {
+            padding: 0.55rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: var(--radius-xs);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preset-btn:hover, .preset-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: rgba(56, 189, 248, 0.4);
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animated Neural Mesh Canvas -->
+    <canvas id="neuralBgCanvas" style="position:fixed; inset:0; z-index:-2; pointer-events:none;"></canvas>
+
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🌌</span>
+            <span>t-SNE & UMAP Manifold Projection</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory & Knowledge</a></li>
+            <li><a href="#faq">Interview & Guidelines</a></li>
+            <li><a href="#code">Python Code Explainer</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/quest">ML Quest</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Unsupervised Learning · Non-Linear Manifold Learning</p>
+                <h1 class="hero-title">
+                    <span class="title-line">t-SNE & UMAP MANIFOLD</span>
+                    <span class="title-line tsne-gradient">VISUALIZATION</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Master non-linear dimensionality reduction — from Student-t crowding remedies and KL divergence optimization in t-SNE to Fuzzy Simplicial Sets and UMAP topology preservation.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary tsne-btn">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground Below ↓</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="380"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : HOUSE OF KNOWLEDGE (THEORY & MATH)
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Mathematical Foundations</span>
+                <h2 class="section-title">t-SNE & UMAP: The House of Knowledge</h2>
+                <p class="section-desc">
+                    Explore probabilistic neighborhood similarity, Student-t distribution heavy tails, and gradient-descent manifold projection.
+                </p>
+            </div>
+
+            <!-- Beginner Intuition & ELI5 Analogy Card -->
+            <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(56, 189, 248, 0.3); padding: 1.75rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">💡</span>
+                    <h3 style="margin:0; font-size:1.25rem; color:#38bdf8;">t-SNE & UMAP for Beginners (Explain Like I'm 5)</h3>
+                </div>
+                <p style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem; margin-bottom:1.25rem;">
+                    Imagine a 3D coiled spring or a complex high-dimensional globe. Linear methods like PCA fail because they flatten the coil onto itself. 
+                    <strong>t-SNE & UMAP measure neighbor friendships in high dimensions, then simulate spring forces on a 2D canvas so close friends stay close while different clusters repel!</strong>
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#38bdf8; font-weight:700;">🤝 1. High-Dim Similarities ($p_{ij}$)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Converts distances into probability scores. Points close together have high similarity probabilities!</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#818cf8; font-weight:700;">👻 2. The Crowding Problem Solution</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Uses heavy-tailed Student-t distributions in 2D so points have enough room to spread out without crowding!</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#34d399; font-weight:700;">⚡ 3. Gradient Optimization</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Iteratively pulls similar points together and pushes dissimilar points apart until 2D layout matches high-D topology!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="theory-grid">
+                <!-- 1. High-Dim Gaussian Similarities -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>1. High-Dim Probabilities ($p_{j|i}$)</h3>
+                    <p>
+                        Converts Euclidean distances into conditional probabilities under a Gaussian distribution:
+                    </p>
+                    <div style="background:rgba(56,189,248,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(56,189,248,0.25); color:#38bdf8; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$p_{j|i} = \frac{\exp(-\|x_i - x_j\|^2 / 2\sigma_i^2)}{\sum_{k \neq i} \exp(-\|x_i - x_k\|^2 / 2\sigma_i^2)}$$
+                    </div>
+                </div>
+
+                <!-- 2. Low-Dim Student-t Distribution -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">👻</div>
+                    <h3>2. Low-Dim Student-t Distribution ($q_{ij}$)</h3>
+                    <p>
+                        Uses a heavy-tailed Student-t distribution (1 degree of freedom) in low-dimensional space $y_i, y_j$:
+                    </p>
+                    <div style="background:rgba(129,140,248,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(129,140,248,0.25); color:#818cf8; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$q_{ij} = \frac{(1 + \|y_i - y_j\|^2)^{-1}}{\sum_{k \neq l} (1 + \|y_k - y_l\|^2)^{-1}}$$
+                    </div>
+                </div>
+
+                <!-- 3. KL Divergence Loss -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📉</div>
+                    <h3>3. Kullback-Leibler (KL) Loss</h3>
+                    <p>
+                        Minimizes the KL divergence between high-dim $p_{ij}$ and low-dim $q_{ij}$ similarity distributions:
+                    </p>
+                    <div style="background:rgba(52,211,153,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(52,211,153,0.25); color:#34d399; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\text{KL}(P \| Q) = \sum_{i \neq j} p_{ij} \log \frac{p_{ij}}{q_{ij}}$$
+                    </div>
+                </div>
+
+                <!-- 4. UMAP Topological Fuzzy Sets -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🌀</div>
+                    <h3>4. UMAP Fuzzy Simplicial Sets</h3>
+                    <p>
+                        UMAP models Riemannian manifold topology using Fuzzy Simplicial Sets and Cross-Entropy loss:
+                    </p>
+                    <div style="background:rgba(251,191,36,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(251,191,36,0.25); color:#fbbf24; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\mathcal{L}_{\text{UMAP}} = \sum_{i \neq j} \left[ p_{ij} \log \frac{p_{ij}}{q_{ij}} + (1 - p_{ij}) \log \frac{1 - p_{ij}}{1 - q_{ij}} \right]$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interview & Production Guidelines -->
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why can't cluster distances in t-SNE be interpreted globally?</h4>
+                        <p>t-SNE prioritizes local neighborhood structure over global distance preservation. The distance between distant clusters in a 2D t-SNE plot is mostly arbitrary.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: What is the main operational advantage of UMAP over t-SNE?</h4>
+                        <p>UMAP is significantly faster ($\mathcal{O}(N \log N)$ via Approximate Nearest Neighbors), preserves both local AND global topology, and allows projecting new unseen test points via `transform()`!</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: What is Perplexity in t-SNE?</h4>
+                        <p>Perplexity sets the effective number of nearest neighbors for each point. Typical values range from 5 to 50.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Computational Complexity Summary</h4>
+                        <p><strong>Naive t-SNE:</strong> $\mathcal{O}(N^2)$ per iteration.<br><strong>Barnes-Hut t-SNE:</strong> $\mathcal{O}(N \log N)$ complexity.<br><strong>UMAP:</strong> $\mathcal{O}(N \log N)$ using Annoy/pynndescent indexing.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithmic Comparison Table -->
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: t-SNE vs UMAP vs PCA</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Manifold Model</th>
+                            <th>Preserved Topology</th>
+                            <th>New Point Transform?</th>
+                            <th>Best Used For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>t-SNE</strong></td>
+                            <td>Probabilistic Neighborhoods</td>
+                            <td>Local Neighborhoods Only</td>
+                            <td>No (Must re-run)</td>
+                            <td>2D/3D visualization of high-D single cell / text embeddings.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>UMAP</strong></td>
+                            <td>Fuzzy Simplicial Sets</td>
+                            <td>Local & Global Topology</td>
+                            <td>Yes (Supports transform)</td>
+                            <td>Fast scalable non-linear projection & feature engineering.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PCA</strong></td>
+                            <td>Linear Subspace Eigenspace</td>
+                            <td>Global Maximum Variance</td>
+                            <td>Yes (Fast matrix dot product)</td>
+                            <td>Fast linear baseline reduction & noise filtering.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Interactive Line-by-Line Python Code Explainer -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / NumPy Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(56,189,248,0.15); border:1px solid #38bdf8; color:#38bdf8; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">tsne_scratch.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Class Setup & Parameters (L1–7)</button>
+                    <button class="code-tab-btn" data-step="step2">2. High-Dim Similarities (L8–12)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Low-Dim Student-t (L13–17)</button>
+                    <button class="code-tab-btn" data-step="step4">4. KL Gradient Optimization (L18–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel">
+                    <div>
+                        <div class="explain-header">
+                            <span class="explain-line-badge" id="explainLineBadge">Line 4</span>
+                            <h4 id="explainTitle">t-SNE Constructor</h4>
+                        </div>
+                        <p class="explain-body" id="explainBody">
+                            Hover or click any line of code above to inspect its line-by-line breakdown.
+                        </p>
+                    </div>
+                    <div class="explain-math-box" id="explainMathBox">
+                        $$\text{perplexity} = 30.0, \quad \eta = 200.0$$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET & DEMO
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Live Demonstration</span>
+                <h2 class="section-title">Sample Dataset Manifold Reduction & Fit</h2>
+                <p class="section-desc">
+                    Explore how t-SNE & UMAP project multi-dimensional sample datasets into 2D manifolds in real time.
+                </p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose a multi-feature dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="iris">🌸 Iris Flower (4D → 2D Manifold)</option>
+                    <option value="digits">🔢 Hand-Written Digit Clusters (64D → 2D)</option>
+                    <option value="swiss">🌀 Swiss Roll Non-Linear 3D Manifold</option>
+                </select>
+                <button class="btn btn-primary btn-sm tsne-btn" id="trainSampleBtn">Compute Manifold Projection</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Dataset Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>#</th><th>Feature X₁</th><th>Feature X₂</th><th>Feature X₃</th><th>Manifold Label</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics" style="display:none;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">KL Divergence Loss</span>
+                    <span class="metric-value" id="sampleMetricKL" style="color:#38bdf8;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Effective Perplexity</span>
+                    <span class="metric-value" id="sampleMetricPerp" style="color:#818cf8;">30.0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Embedding Iterations</span>
+                    <span class="metric-value" id="sampleMetricIter" style="color:#34d399;">250</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Neighborhood Trust</span>
+                    <span class="metric-value" id="sampleMetricTrust" style="color:#fbbf24;">0.94</span>
+                </div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts" style="display:none;">
+                <div class="chart-card glass-card">
+                    <h4>2D Manifold Embedding Scatter</h4>
+                    <canvas id="sampleScatterChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>KL Loss Convergence Curve</h4>
+                    <canvas id="sampleConvergenceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Visual Simulation</span>
+                <h2 class="section-title">Manifold Embedding Playground</h2>
+                <p class="section-desc">
+                    Plot custom 2D data points, adjust Perplexity and Learning Rate sliders, and watch the embedding manifold unroll in real time!
+                </p>
+            </div>
+
+            <div class="tsne-lab-wrapper">
+                <div class="tsne-canvas-panel">
+                    <div class="tsne-canvas-container">
+                        <canvas id="tsneCanvas" width="600" height="460"></canvas>
+                        <div class="canvas-tooltip" id="canvasTooltip">
+                            <span>Mouse Position: (0.00, 0.00)</span>
+                            <span>•</span>
+                            <span style="color:#38bdf8;" id="statusLabel">Status: Ready</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="padding:1.25rem;">
+                        <div class="preset-buttons" style="margin-top:0;">
+                            <button class="preset-btn active" data-preset="moons">🌀 Two Moons</button>
+                            <button class="preset-btn" data-preset="circles">🎯 Concentric Rings</button>
+                            <button class="preset-btn" data-preset="swiss">🌪️ Swiss Roll</button>
+                            <button class="preset-btn" data-preset="clusters">🫧 3 High-D Clusters</button>
+                        </div>
+                        <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+                            <button class="btn btn-outline btn-sm" id="btnClearPoints" style="width:100%; justify-content:center;">🗑️ Clear Canvas Points</button>
+                            <button class="btn btn-outline btn-sm" id="btnRandomizePoints" style="width:100%; justify-content:center;">🎲 Add Random Noise</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tsne-controls-sidebar">
+                    <div class="control-block">
+                        <h3>⚡ Manifold Controls</h3>
+                        
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Perplexity / Neighbors</span>
+                                <span class="slider-val" id="valPerp">30</span>
+                            </div>
+                            <input type="range" id="sliderPerp" min="5" max="50" value="30">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Learning Rate ($\eta$)</span>
+                                <span class="slider-val" id="valEta">150</span>
+                            </div>
+                            <input type="range" id="sliderEta" min="10" max="500" value="150">
+                        </div>
+
+                        <div style="margin-top:1.25rem;">
+                            <button class="btn btn-primary tsne-btn" id="btnRunEmbedding" style="width:100%; justify-content:center;">🚀 Step Manifold Gradient</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" style="margin-top:2rem;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">KL Divergence</span>
+                    <span class="metric-value" id="metricKL" style="color:#38bdf8;">0.42</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Gradient Norm</span>
+                    <span class="metric-value" id="metricGradNorm" style="color:#818cf8;">0.018</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Total Points</span>
+                    <span class="metric-value" id="metricPoints" style="color:#34d399;">60</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Iteration Step</span>
+                    <span class="metric-value" id="metricStep" style="color:#fbbf24;">100</span>
+                </div>
+            </div>
+
+            <div class="charts-grid" style="margin-top:2rem;">
+                <div class="chart-card glass-card">
+                    <h4>KL Divergence Loss per Iteration</h4>
+                    <canvas id="chartKLLoss" height="220"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Embedding Coordinates Variance</h4>
+                    <canvas id="chartCoordVar" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser · <a href="main.html">Lab Hub</a></p>
+        </div>
+    </footer>
+
+    <script src="tsne-umap-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

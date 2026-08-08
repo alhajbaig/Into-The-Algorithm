@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proximal Policy Optimization (PPO) — Interactive Visual Guide & House of Knowledge</title>
+    <meta name="description" content="Master Proximal Policy Optimization (PPO) Reinforcement Learning interactively with Clipped Objective Functions, Advantage Estimation (GAE), Actor-Critic Networks, Python code explainer, and live playgrounds.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .ppo-accent { color: #10b981; }
+        .ppo-gradient { 
+            background: linear-gradient(135deg, #34d399, #10b981); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .ppo-btn { 
+            background: linear-gradient(135deg, #10b981, #059669) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35) !important;
+        }
+        .ppo-btn:hover { 
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5) !important; 
+            transform: translateY(-2px);
+        }
+
+        .code-container { border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); background: #060913; margin-top: 1rem; }
+        .code-header-bar { display: flex; align-items: center; justify-content: space-between; background: #0a0e1a; padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .code-dot-group { display: flex; gap: 6px; }
+        .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27c93f; }
+        .code-header-title { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-secondary); }
+
+        .code-block-interactive { background: #060913; padding: 1rem 0; font-family: var(--font-mono); font-size: 0.88rem; line-height: 1.8; color: #e6edf3; overflow-x: auto; margin: 0; }
+        .code-line { display: flex; padding: 0.25rem 1.25rem; cursor: pointer; transition: all 0.15s ease; user-select: none; border-left: 3px solid transparent; }
+        .code-line:hover, .code-line.active { background: rgba(16, 185, 129, 0.15); border-left-color: #10b981; }
+        .code-line.locked { background: rgba(16, 185, 129, 0.28) !important; border-left: 4px solid #10b981 !important; box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.2); }
+        .line-num { width: 30px; color: #4b5563; font-size: 0.8rem; text-align: right; margin-right: 1.25rem; flex-shrink: 0; }
+        .line-content { white-space: pre; flex: 1; }
+
+        .code-step-selector { display: flex; gap: 0.5rem; margin-top: 1.25rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .code-tab-btn { padding: 0.5rem 0.85rem; border-radius: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .code-tab-btn:hover, .code-tab-btn.active { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #10b981; }
+
+        .code-explanation-panel { padding: 1.5rem; border-radius: 12px; background: rgba(17, 24, 39, 0.7); border: 1px solid rgba(16, 185, 129, 0.3); margin-top: 0.5rem; }
+        .explain-line-badge { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 0.25rem 0.75rem; border-radius: 50px; display: inline-block; margin-bottom: 0.5rem; transition: all 0.2s ease; }
+        .explain-header h4 { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin: 0 0 0.5rem 0; }
+        .explain-body { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 0.85rem; }
+        .explain-math-box { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.85rem 1rem; color: #10b981; font-family: var(--font-mono); font-size: 0.9rem; }
+
+        .code-keyword { color: #ff7b72; font-weight: 600; }
+        .code-func { color: #d2a8ff; }
+        .code-comment { color: #8b949e; font-style: italic; }
+        .code-string { color: #a5d6ff; }
+        .code-num { color: #79c0ff; }
+
+        .comp-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.88rem; }
+        .comp-table th, .comp-table td { padding: 0.85rem 1.1rem; border: 1px solid var(--border); text-align: left; }
+        .comp-table th { background: rgba(16, 185, 129, 0.12); color: #10b981; font-weight: 700; }
+        .comp-table td { color: var(--text-secondary); }
+
+        .faq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 1.25rem; }
+        .faq-card { padding: 1.25rem; border-radius: var(--radius-sm); background: rgba(17, 24, 39, 0.6); border: 1px solid var(--border); }
+        .faq-card h4 { margin: 0 0 0.5rem; font-size: 0.98rem; color: #10b981; }
+        .faq-card p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+        #heroCanvas { border-radius: var(--radius); background: rgba(17, 24, 39, 0.5); border: 1px solid var(--border); }
+
+        .ppo-lab-wrapper { display: flex; gap: 2rem; align-items: stretch; flex-wrap: wrap; }
+        .ppo-canvas-panel { flex: 1; min-width: 340px; display: flex; flex-direction: column; gap: 1rem; }
+        .ppo-canvas-container { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: rgba(17, 24, 39, 0.65); }
+        .ppo-canvas-container canvas { display: block; width: 100%; cursor: crosshair; }
+        .canvas-tooltip {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 0.78rem; font-weight: 600; color: #ffffff;
+            background: rgba(10, 14, 26, 0.85); padding: 0.4rem 1rem; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); pointer-events: none; display: flex; align-items: center; gap: 0.5rem;
+        }
+        .ppo-controls-sidebar { width: 330px; min-width: 290px; }
+
+        .control-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; backdrop-filter: blur(16px); }
+        .control-block h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+
+        .slider-group { margin-bottom: 1.25rem; }
+        .slider-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .slider-val { font-family: var(--font-mono); color: #10b981; font-weight: 700; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); outline: none; accent-color: #10b981; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- Background Animated Neural Mesh Canvas -->
+    <canvas id="neuralBgCanvas" style="position:fixed; inset:0; z-index:-2; pointer-events:none;"></canvas>
+
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🎯</span>
+            <span>Proximal Policy Optimization (PPO)</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory & Knowledge</a></li>
+            <li><a href="#faq">Interview & Guidelines</a></li>
+            <li><a href="#code">Python Code Explainer</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/quest">ML Quest</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Reinforcement Learning · Policy Gradient Methods</p>
+                <h1 class="hero-title">
+                    <span class="title-line">PROXIMAL POLICY</span>
+                    <span class="title-line ppo-gradient">OPTIMIZATION (PPO)</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Master modern Policy Gradient algorithms — from Clipped Surrogate Objectives ($L^{\text{CLIP}}$) and Advantage Estimation (GAE) to ChatGPT-RLHF foundation alignment.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary ppo-btn">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try LunarLander Below ↓</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="380"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : HOUSE OF KNOWLEDGE (THEORY & MATH)
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Mathematical Foundations</span>
+                <h2 class="section-title">PPO: The House of Knowledge</h2>
+                <p class="section-desc">
+                    Master clipped surrogate objectives, Generalized Advantage Estimation (GAE), and stable policy updates.
+                </p>
+            </div>
+
+            <!-- Beginner Intuition & ELI5 Analogy Card -->
+            <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.75rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">💡</span>
+                    <h3 style="margin:0; font-size:1.25rem; color:#10b981;">PPO for Beginners (Explain Like I'm 5)</h3>
+                </div>
+                <p style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem; margin-bottom:1.25rem;">
+                    Imagine learning to ride a bicycle. If you try to make a massive 90° steering correction all at once, you crash into the grass! 
+                    <strong>PPO acts as a safety harness ($[1-\epsilon, 1+\epsilon]$ clipping) that restricts how much the AI can change its driving strategy in a single update step, ensuring stable learning!</strong>
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#10b981; font-weight:700;">🔄 1. Probability Ratio ($r_t$)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Measures how much more (or less) likely the new policy $\pi_\theta$ takes an action compared to the old policy $\pi_{\theta_{\text{old}}}$.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#fbbf24; font-weight:700;">✂️ 2. Clipped Objective ($L^{\text{CLIP}}$)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Clips probability ratio $r_t$ inside $[1-\epsilon, 1+\epsilon]$ (e.g. $[0.8, 1.2]$) to prevent destructively large policy updates!</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#60a5fa; font-weight:700;">⭐ 3. Advantage Estimation ($\hat{A}_t$)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Calculates how much better taking a specific action was compared to the average expected return in that state.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="theory-grid">
+                <!-- 1. Probability Ratio -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🔄</div>
+                    <h3>1. Policy Probability Ratio ($r_t$)</h3>
+                    <p>
+                        The ratio of current policy probability $\pi_\theta(a_t|s_t)$ over old execution policy probability $\pi_{\theta_{\text{old}}}(a_t|s_t)$:
+                    </p>
+                    <div style="background:rgba(16,185,129,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(16,185,129,0.25); color:#10b981; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \mid s_t)}$$
+                    </div>
+                </div>
+
+                <!-- 2. Clipped Loss -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">✂️</div>
+                    <h3>2. Clipped Surrogate Objective</h3>
+                    <p>
+                        PPO-Clip penalizes policy updates outside the safe range $[1-\epsilon, 1+\epsilon]$:
+                    </p>
+                    <div style="background:rgba(251,191,36,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(251,191,36,0.25); color:#fbbf24; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$L^{\text{CLIP}}(\theta) = \hat{\mathbb{E}}_t \left[ \min\left(r_t(\theta)\hat{A}_t, \; \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right) \right]$$
+                    </div>
+                </div>
+
+                <!-- 3. Generalized Advantage (GAE) -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⭐</div>
+                    <h3>3. Generalized Advantage (GAE)</h3>
+                    <p>
+                        Combines short-term TD residual errors $\delta_t = R_t + \gamma V(S_{t+1}) - V(S_t)$ with exponential decay $\lambda$:
+                    </p>
+                    <div style="background:rgba(96,165,250,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(96,165,250,0.25); color:#60a5fa; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma \lambda)^l \delta_{t+l}^V$$
+                    </div>
+                </div>
+
+                <!-- 4. Combined Actor-Critic Loss -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>4. Full Actor-Critic Loss</h3>
+                    <p>
+                        Combines policy clip objective, Critic MSE value loss, and Policy Entropy bonus $S[\pi_\theta]$:
+                    </p>
+                    <div style="background:rgba(248,113,113,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(248,113,113,0.25); color:#f87171; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$L^{\text{PPO}}(\theta) = \hat{\mathbb{E}}_t \left[ L_t^{\text{CLIP}}(\theta) - c_1 L_t^{\text{VF}}(\theta) + c_2 S[\pi_\theta](s_t) \right]$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why is PPO preferred over TRPO (Trust Region Policy Optimization)?</h4>
+                        <p>TRPO requires computing second-order Hessian matrix inverses (Kronecker-factored approximate curvature), which is extremely slow. PPO achieves similar stability using simple first-order gradient clipping!</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Why is PPO used in ChatGPT RLHF (Human Feedback)?</h4>
+                        <p>PPO's clip constraint ensures the Large Language Model's policy doesn't collapse or drift drastically while learning human preference reward models.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: What does Clipping Epsilon ($\epsilon$) control?</h4>
+                        <p>Typical $\epsilon = 0.1$ or $0.2$. It caps maximum policy change to $20\%$, preventing disastrous unrecoverable policy drops.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Computational Complexity Summary</h4>
+                        <p><strong>First-Order SGD:</strong> $\mathcal{O}(M \cdot L)$ forward/backward passes.<br><strong>Sample Efficiency:</strong> Re-uses collected trajectory batch for $K$ epochs.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: PPO vs TRPO vs A2C</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Trust Region Method</th>
+                            <th>Order of Gradient</th>
+                            <th>Sample Efficiency</th>
+                            <th>Best Used For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>PPO</strong></td>
+                            <td>First-order Ratio Clipping</td>
+                            <td>1st Order (SGD/Adam)</td>
+                            <td>High (Multi-epoch SGD)</td>
+                            <td>ChatGPT RLHF, robotics, continuous & discrete control.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TRPO</strong></td>
+                            <td>KL Constraint Bound</td>
+                            <td>2nd Order (Hessian/FIM)</td>
+                            <td>High</td>
+                            <td>Theoretical research requiring strict KL bounds.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>A2C / A3C</strong></td>
+                            <td>None (Standard Policy Grad)</td>
+                            <td>1st Order (SGD)</td>
+                            <td>Moderate (Single-pass)</td>
+                            <td>Fast parallel asynchronous RL environments.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / PyTorch Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">ppo_actor_critic.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Actor-Critic Architecture (L1–7)</button>
+                    <button class="code-tab-btn" data-step="step2">2. GAE Advantage Calculation (L8–12)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Clipped Loss Objective (L13–18)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Multi-Epoch SGD Step (L19–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel">
+                    <div>
+                        <div class="explain-header">
+                            <span class="explain-line-badge" id="explainLineBadge">Line 4</span>
+                            <h4 id="explainTitle">PPO Actor-Critic Constructor</h4>
+                        </div>
+                        <p class="explain-body" id="explainBody">
+                            Hover or click any line of code above to inspect its line-by-line breakdown.
+                        </p>
+                    </div>
+                    <div class="explain-math-box" id="explainMathBox">
+                        $$\epsilon = 0.2, \quad \gamma = 0.99, \quad \lambda = 0.95$$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET & DEMO
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Live Demonstration</span>
+                <h2 class="section-title">Sample Environment Policy Optimization</h2>
+                <p class="section-desc">
+                    Explore how PPO optimizes continuous and discrete policies in real time.
+                </p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose a continuous/discrete environment:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="lunar">🚀 LunarLanderContinuous-v2 (Smooth Soft Landing)</option>
+                    <option value="bipedal">🦿 BipedalWalker-v3 (Robot Leg Locomotion)</option>
+                    <option value="humanoid">🏃 Humanoid-v4 (3D Physics Balance)</option>
+                </select>
+                <button class="btn btn-primary btn-sm ppo-btn" id="trainSampleBtn">Optimize PPO Policy</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Policy Advantage & Action Log Probabilities</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>#</th><th>State Observation</th><th>Action LogProb</th><th>Advantage ($\hat{A}_t$)</th><th>Ratio ($r_t$)</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics" style="display:none;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Policy Entropy</span>
+                    <span class="metric-value" id="sampleMetricEntropy" style="color:#10b981;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Clipped Ratio %</span>
+                    <span class="metric-value" id="sampleMetricClipRatio" style="color:#fbbf24;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Value Loss ($L^{VF}$)</span>
+                    <span class="metric-value" id="sampleMetricValLoss" style="color:#60a5fa;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Mean Return</span>
+                    <span class="metric-value" id="sampleMetricMeanReturn" style="color:#34d399;">—</span>
+                </div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts" style="display:none;">
+                <div class="chart-card glass-card">
+                    <h4>PPO Policy Return Growth</h4>
+                    <canvas id="sampleScatterChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Clipped Objective Loss Curve</h4>
+                    <canvas id="sampleConvergenceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Visual Simulation</span>
+                <h2 class="section-title">PPO LunarLander Continuous Playground</h2>
+                <p class="section-desc">
+                    Watch a PPO Actor-Critic agent land a spacecraft between flags using main and side thruster vectors! Adjust clip ratio $\epsilon$ and Advantage $\lambda$.
+                </p>
+            </div>
+
+            <div class="ppo-lab-wrapper">
+                <div class="ppo-canvas-panel">
+                    <div class="ppo-canvas-container">
+                        <canvas id="ppoCanvas" width="600" height="460"></canvas>
+                        <div class="canvas-tooltip" id="canvasTooltip">
+                            <span>Lander Altitude: 100m | Angle: 0°</span>
+                            <span>•</span>
+                            <span style="color:#10b981;" id="statusLabel">Status: Ready</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="padding:1.25rem;">
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-primary ppo-btn" id="btnStepEpisode" style="width:100%; justify-content:center;">⏯️ Step 1 Flight</button>
+                            <button class="btn btn-outline btn-sm" id="btnTrainFast" style="width:100%; justify-content:center;">🚀 Train 30 Iterations</button>
+                            <button class="btn btn-outline btn-sm" id="btnResetPPO" style="width:100%; justify-content:center;">🗑️ Reset Policy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ppo-controls-sidebar">
+                    <div class="control-block">
+                        <h3>⚡ PPO Hyperparameters</h3>
+                        
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Clip Ratio ($\epsilon$)</span>
+                                <span class="slider-val" id="valEps">0.20</span>
+                            </div>
+                            <input type="range" id="sliderEps" min="0.05" max="0.40" step="0.05" value="0.20">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>GAE Lambda ($\lambda$)</span>
+                                <span class="slider-val" id="valLambda">0.95</span>
+                            </div>
+                            <input type="range" id="sliderLambda" min="0.80" max="0.99" step="0.01" value="0.95">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>SGD Epochs per Update</span>
+                                <span class="slider-val" id="valEpochs">4</span>
+                            </div>
+                            <input type="range" id="sliderEpochs" min="1" max="10" value="4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" style="margin-top:2rem;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Policy Updates</span>
+                    <span class="metric-value" id="metricUpdates" style="color:#10b981;">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Latest Flight Score</span>
+                    <span class="metric-value" id="metricScore" style="color:#34d399;">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Clipped Fraction</span>
+                    <span class="metric-value" id="metricClipFrac" style="color:#60a5fa;">0.0%</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Policy Loss ($L^{\text{CLIP}}$)</span>
+                    <span class="metric-value" id="metricLoss" style="color:#fbbf24;">0.00</span>
+                </div>
+            </div>
+
+            <div class="charts-grid" style="margin-top:2rem;">
+                <div class="chart-card glass-card">
+                    <h4>PPO Policy Reward Progress</h4>
+                    <canvas id="chartScore" height="220"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Clipped Ratio vs Step</h4>
+                    <canvas id="chartClip" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser · <a href="main.html">Lab Hub</a></p>
+        </div>
+    </footer>
+
+    <script src="ppo-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

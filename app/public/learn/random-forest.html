@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Forest — Interactive Visual Guide & House of Knowledge</title>
+    <meta name="description" content="Master Random Forests & Bagging Ensembles with mathematical derivations, Out-of-Bag (OOB) error math, feature subsampling, Python code explainer, sample data training, and interactive decision boundary playgrounds.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .rf-accent { color: #34d399; }
+        .rf-gradient { 
+            background: linear-gradient(135deg, #34d399, #10b981); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .rf-btn { 
+            background: linear-gradient(135deg, #10b981, #059669) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35) !important;
+        }
+        .rf-btn:hover { 
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5) !important; 
+            transform: translateY(-2px);
+        }
+
+        /* ── Code Container & Interactive Line Explainer Styling ── */
+        .code-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #060913;
+            margin-top: 1rem;
+        }
+        .code-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0a0e1a;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .code-dot-group {
+            display: flex;
+            gap: 6px;
+        }
+        .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27c93f; }
+        .code-header-title {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .code-block-interactive {
+            background: #060913;
+            padding: 1rem 0;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.8;
+            color: #e6edf3;
+            overflow-x: auto;
+            margin: 0;
+        }
+        .code-line {
+            display: flex;
+            padding: 0.25rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            border-left: 3px solid transparent;
+        }
+        .code-line:hover, .code-line.active {
+            background: rgba(52, 211, 153, 0.15);
+            border-left-color: #34d399;
+        }
+        .code-line.locked {
+            background: rgba(52, 211, 153, 0.28) !important;
+            border-left: 4px solid #34d399 !important;
+            box-shadow: inset 0 0 12px rgba(52, 211, 153, 0.2);
+        }
+        .line-num {
+            width: 30px;
+            color: #4b5563;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-right: 1.25rem;
+            flex-shrink: 0;
+        }
+        .line-content {
+            white-space: pre;
+            flex: 1;
+        }
+
+        .code-step-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .code-tab-btn {
+            padding: 0.5rem 0.85rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .code-tab-btn:hover, .code-tab-btn.active {
+            background: rgba(52, 211, 153, 0.15);
+            border-color: rgba(52, 211, 153, 0.4);
+            color: #34d399;
+        }
+
+        .code-explanation-panel {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            margin-top: 0.5rem;
+        }
+        .explain-line-badge {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #34d399;
+            background: rgba(52, 211, 153, 0.15);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .explain-header h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 0.5rem 0;
+        }
+        .explain-body {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 0.85rem;
+        }
+        .explain-math-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: #34d399;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .code-keyword { color: #ff7b72; font-weight: 600; }
+        .code-func { color: #d2a8ff; }
+        .code-comment { color: #8b949e; font-style: italic; }
+        .code-string { color: #a5d6ff; }
+        .code-num { color: #79c0ff; }
+
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.88rem;
+        }
+        .comp-table th, .comp-table td {
+            padding: 0.85rem 1.1rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .comp-table th { background: rgba(52, 211, 153, 0.12); color: #34d399; font-weight: 700; }
+        .comp-table td { color: var(--text-secondary); }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+        .faq-card {
+            padding: 1.25rem;
+            border-radius: var(--radius-sm);
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid var(--border);
+        }
+        .faq-card h4 { margin: 0 0 0.5rem; font-size: 0.98rem; color: #34d399; }
+        .faq-card p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+        #heroCanvas {
+            border-radius: var(--radius);
+            background: rgba(17, 24, 39, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .rf-lab-wrapper {
+            display: flex;
+            gap: 2rem;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        .rf-canvas-panel {
+            flex: 1;
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .rf-canvas-container {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(17, 24, 39, 0.65);
+        }
+        .rf-canvas-container canvas {
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+        }
+        .canvas-tooltip {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #ffffff;
+            background: rgba(10, 14, 26, 0.85);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .rf-controls-sidebar {
+            width: 330px;
+            min-width: 290px;
+        }
+
+        .control-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(16px);
+        }
+        .control-block h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .slider-group {
+            margin-bottom: 1.25rem;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+        .slider-val {
+            font-family: var(--font-mono);
+            color: #34d399;
+            font-weight: 700;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            accent-color: #34d399;
+            cursor: pointer;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .preset-btn {
+            padding: 0.55rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: var(--radius-xs);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preset-btn:hover, .preset-btn.active {
+            background: rgba(52, 211, 153, 0.15);
+            border-color: rgba(52, 211, 153, 0.4);
+            color: #34d399;
+        }
+
+        .class-selector-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .class-btn {
+            flex: 1;
+            padding: 0.6rem 0.8rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        .class-btn.active-class0 {
+            background: rgba(52, 211, 153, 0.2);
+            border-color: #34d399;
+            color: #34d399;
+        }
+        .class-btn.active-class1 {
+            background: rgba(96, 165, 250, 0.2);
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+
+        .tree-select-wrapper {
+            margin-top: 1rem;
+        }
+        .tree-select-wrapper select {
+            width: 100%;
+            padding: 0.6rem 0.9rem;
+            border-radius: 10px;
+            background: #090d16;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animated Neural Mesh Canvas -->
+    <canvas id="neuralBgCanvas" style="position:fixed; inset:0; z-index:-2; pointer-events:none;"></canvas>
+
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🌲</span>
+            <span>Random Forest</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory & Knowledge</a></li>
+            <li><a href="#faq">Interview & Guidelines</a></li>
+            <li><a href="#code">Python Code Explainer</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/quest">ML Quest</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Machine Learning Fundamentals</p>
+                <h1 class="hero-title">
+                    <span class="title-line">RANDOM FOREST &</span>
+                    <span class="title-line rf-gradient">BAGGING ENSEMBLES</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Master ensemble decision trees through interactive 2D boundary heatmaps, Out-of-Bag (OOB) error estimation, feature subsampling, and live voting tree inspection.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary rf-btn">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try It Yourself</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="380"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : HOUSE OF KNOWLEDGE (THEORY & MATH)
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Deep Intuition & Mathematical Formulations</span>
+                <h2 class="section-title">Random Forest: The House of Knowledge</h2>
+                <p class="section-desc">
+                    Master every aspect of Random Forests — from Bootstrap Aggregating (Bagging) derivations and Out-of-Bag (OOB) validation to feature decorrelation and bias-variance tradeoff math.
+                </p>
+            </div>
+
+            <!-- Beginner Intuition & ELI5 Analogy Card -->
+            <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(52, 211, 153, 0.3); padding: 1.75rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">💡</span>
+                    <h3 style="margin:0; font-size:1.25rem; color:#34d399;">Random Forest for Beginners (Explain Like I'm 5)</h3>
+                </div>
+                <p style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem; margin-bottom:1.25rem;">
+                    Instead of asking 1 single person for financial advice (who might be biased or wrong), 
+                    you ask a <strong>Committee of 100 independent experts</strong>! Each expert looks at a slightly different random subset of data and votes. 
+                    <strong>Random Forest combines 100 decision trees into a "Wisdom of the Crowd" majority vote, eliminating individual tree mistakes!</strong>
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#34d399; font-weight:700;">🎒 1. Bootstrapping (Bagging)</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Each tree gets a random "bag" of data samples selected with replacement so no two trees see the exact same data.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#60a5fa; font-weight:700;">🔀 2. Random Feature Subsampling</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">At each node split, trees only consider a random subset of features (e.g. $m = \sqrt{p}$), forcing them to learn different patterns.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#fbbf24; font-weight:700;">🗳️ 3. Ensemble Majority Voting</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">All 100 trees output their predictions. The class with the most votes wins! For regression, we take the average score.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="theory-grid">
+                <!-- 1. Ensemble Formulation -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🌲</div>
+                    <h3>1. Bootstrap Aggregating (Bagging)</h3>
+                    <p>
+                        Random Forests construct an ensemble of \(B\) decision trees \(T_1, T_2, \dots, T_B\) trained on independent bootstrap samples of dataset \(\mathcal{D}\):
+                    </p>
+                    <div style="background:rgba(52,211,153,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(52,211,153,0.25); color:#34d399; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\hat{f}_{\text{rf}}(x) = \frac{1}{B} \sum_{b=1}^B T_b(x)$$
+                    </div>
+                    <p style="margin-top:0.75rem; font-size:0.85rem; color:var(--text-secondary);">
+                        Averaging \(B\) randomized trees shrinks total model variance without increasing structural bias.
+                    </p>
+                </div>
+
+                <!-- 2. Variance Reduction -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📉</div>
+                    <h3>2. Feature Subsampling & Decorrelation</h3>
+                    <p>
+                        If trees have pairwise Pearson correlation \(\rho > 0\), total variance equals:
+                    </p>
+                    <div style="background:rgba(96,165,250,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(96,165,250,0.25); color:#60a5fa; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\text{Var}(\bar{T}) = \rho \sigma^2 + \frac{1 - \rho}{B} \sigma^2$$
+                    </div>
+                    <p style="margin-top:0.75rem; font-size:0.85rem; color:var(--text-secondary);">
+                        Subsampling \(m = \sqrt{p}\) candidate features at each split node decorrelates individual trees (\(\rho \to 0\)), driving overall variance down to minimum bounds.
+                    </p>
+                </div>
+
+                <!-- 3. Gini Impurity & Entropy -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>3. Node Impurity Metrics</h3>
+                    <p>
+                        Tree split selection maximizes Impurity Reduction:
+                    </p>
+                    <div style="background:rgba(167,139,250,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(167,139,250,0.25); color:#a78bfa; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\text{Gini}(D) = 1 - \sum_{k=1}^K p_k^2 \quad \big| \quad \text{Entropy}(D) = -\sum_{k=1}^K p_k \log_2(p_k)$$
+                    </div>
+                    <p style="margin-top:0.75rem; font-size:0.85rem; color:var(--text-secondary);">
+                        Lower impurity indicates higher node class purity.
+                    </p>
+                </div>
+
+                <!-- 4. Feature Importance -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📊</div>
+                    <h3>4. Mean Decrease in Impurity (MDI)</h3>
+                    <p>
+                        Feature importance is calculated as the accumulated Gini impurity reduction weighted by node sample fraction across all trees in the forest:
+                    </p>
+                    <div style="background:rgba(251,191,36,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(251,191,36,0.25); color:#fbbf24; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$I(X_j) = \frac{1}{B} \sum_{b=1}^B \sum_{n \in T_b, \text{split}(n)=X_j} \Delta \text{Gini}(n)$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- OOB Estimation -->
+            <div class="glass-card" style="margin-top:1.75rem;">
+                <h3>🛡️ Out-Of-Bag (OOB) Error Estimation</h3>
+                <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.35rem;">
+                    For a dataset of size \(N\), the probability that a specific sample is <em>never</em> selected in a bootstrap sample of size \(N\) is:
+                </p>
+                <div style="background:rgba(0,0,0,0.4); padding:0.75rem 1rem; border-radius:10px; border:1px solid var(--border); color:#a78bfa; font-family:var(--font-mono); font-size:0.95rem; margin:0.75rem 0;">
+                    $$\lim_{N \to \infty} \left(1 - \frac{1}{N}\right)^N = e^{-1} \approx 0.368 \quad (36.8\%)$$
+                </div>
+                <p style="color:var(--text-secondary); font-size:0.88rem; line-height:1.65;">
+                    Consequently, \(\sim 36.8\%\) of training samples are unused ("Out-Of-Bag") for each tree. Evaluating each sample exclusively on trees where it was OOB yields an unbiased validation metric <strong>without requiring a separate validation test set</strong>!
+                </p>
+            </div>
+
+            <!-- Interview & Production Deep-Dive -->
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why doesn't Random Forest overfit as tree count N increases?</h4>
+                        <p>Adding more trees only averages out variance and stabilizes prediction probabilities. Unlike Gradient Boosting, Random Forest trees are trained independently in parallel without learning residual errors of prior trees.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Random Forest vs. Single Decision Tree?</h4>
+                        <p>Single decision trees have high variance and produce rigid, step-like decision boundaries. Random Forests smooth out decision boundaries, providing significantly higher generalization accuracy on unseen test data.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: How to tune max_features ($m$)?</h4>
+                        <p>For classification tasks, the optimal setting is typically $m = \sqrt{p}$. For regression tasks, $m = p/3$ is standard. Lower $m$ increases tree independence at the cost of slight tree bias.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Computational Complexity Summary</h4>
+                        <p><strong>Training Complexity:</strong> $\mathcal{O}(B \cdot m \cdot N \log N)$.<br><strong>Inference Complexity:</strong> $\mathcal{O}(B \cdot \text{depth})$ traversal steps per sample.<br><strong>Storage:</strong> $\mathcal{O}(B \cdot \text{nodes})$ in memory.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: Single Tree vs Random Forest vs XGBoost</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Ensemble Type</th>
+                            <th>Tree Training Mode</th>
+                            <th>Overfitting Risk</th>
+                            <th>Best Used When</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Single Decision Tree</strong></td>
+                            <td>None (Single Model)</td>
+                            <td>Recursive Axis Splitting</td>
+                            <td>High (High Variance)</td>
+                            <td>Interpretability & decision rules are paramount.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Random Forest</strong></td>
+                            <td>Bagging (Bootstrap Aggregating)</td>
+                            <td>Parallel & Independent</td>
+                            <td>Low (Variance Reduced)</td>
+                            <td>High accuracy needed without sensitive tuning.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>XGBoost / Gradient Boosting</strong></td>
+                            <td>Boosting (Residual Minimization)</td>
+                            <td>Sequential & Dependent</td>
+                            <td>Moderate (Requires Tuning)</td>
+                            <td>Tabular competition benchmarks and maximum accuracy.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Interactive Line-by-Line Python Code Explainer -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / NumPy Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong> on it. Hover over lines to preview breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(52,211,153,0.15); border:1px solid #34d399; color:#34d399; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <!-- Full-Width Code Container -->
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">random_forest_scratch.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive">
+                        <!-- Populated dynamically with line numbers & click handlers -->
+                    </div>
+                </div>
+
+                <!-- Step Preset Selectors Below Code -->
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Class Setup & Parameters (L1–8)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Bootstrap Sampling (L9–12)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Parallel Forest Fitting (L13–19)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Soft Voting Consensus (L20–22)</button>
+                </div>
+
+                <!-- Interactive Explanation Panel Below Code Container -->
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel">
+                    <div>
+                        <div class="explain-header">
+                            <span class="explain-line-badge" id="explainLineBadge">Line 4</span>
+                            <h4 id="explainTitle">Forest Constructor & Hyperparameters</h4>
+                        </div>
+                        <p class="explain-body" id="explainBody">
+                            Hover or click any line of code above to inspect its line-by-line breakdown.
+                        </p>
+                    </div>
+                    <div class="explain-math-box" id="explainMathBox">
+                        $$B = 15, \quad D_{\text{max}} = 5, \quad m/p = 0.70$$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET & DEMO
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Sample Dataset & Model Fit</h2>
+                <p class="section-desc">
+                    Explore how Random Forest fits sample data in real-time.
+                    All computations run locally in your browser.
+                </p>
+            </div>
+
+            <!-- Dataset Selector -->
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose a dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="iris">🌸 Iris Flower Classification (Petal Length vs Width)</option>
+                    <option value="credit">💳 Credit Card Fraud Detection (Frequency vs Amount)</option>
+                    <option value="churn">📱 Customer Churn Risk (Tenure vs Charges)</option>
+                </select>
+                <button class="btn btn-primary btn-sm rf-btn" id="trainSampleBtn">Train Model</button>
+            </div>
+
+            <!-- Data Table -->
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Dataset Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>#</th><th>X₁</th><th>X₂</th><th>Y (Class)</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Metrics Dashboard -->
+            <div class="metrics-dashboard" id="sampleMetrics" style="display:none;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Accuracy</span>
+                    <span class="metric-value" id="sampleMetricAcc" style="color:#34d399;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">OOB Score</span>
+                    <span class="metric-value" id="sampleMetricOOB" style="color:#60a5fa;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Trees ($B$)</span>
+                    <span class="metric-value" id="sampleMetricTrees" style="color:#a78bfa;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Gini Importance (X₁)</span>
+                    <span class="metric-value" id="sampleMetricImpX1" style="color:#fbbf24;">—</span>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid" id="sampleCharts" style="display:none;">
+                <div class="chart-card glass-card">
+                    <h4>Scatter Plot with Classes</h4>
+                    <canvas id="sampleScatterChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Accuracy Convergence vs Trees</h4>
+                    <canvas id="sampleConvergenceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Experiment</span>
+                <h2 class="section-title">Random Forest Interactive Playground</h2>
+                <p class="section-desc">
+                    Plot custom 2D data points, adjust forest parameters ($N_{\text{estimators}}$, Depth, Subsampling %), and inspect decision boundary heatmaps and voting trees in real time.
+                </p>
+            </div>
+
+            <div class="rf-lab-wrapper">
+                <!-- Left Interactive 2D Canvas -->
+                <div class="rf-canvas-panel">
+                    <div class="rf-canvas-container">
+                        <canvas id="rfCanvas" width="600" height="460"></canvas>
+                        <div class="canvas-tooltip" id="canvasTooltip">
+                            <span>Mouse Position: (0.00, 0.00)</span>
+                            <span>•</span>
+                            <span style="color:#34d399;" id="probLabel">P(Class A) = 50%</span>
+                        </div>
+                    </div>
+
+                    <!-- Preset Datasets & Actions -->
+                    <div class="glass-card" style="padding:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+                            <div>
+                                <span style="font-size:0.85rem; font-weight:700; color:var(--text-secondary);">Point Addition Mode:</span>
+                            </div>
+                            <div class="class-selector-toggle" style="margin:0;">
+                                <button class="class-btn active-class0" id="btnClass0">🟢 Class A</button>
+                                <button class="class-btn" id="btnClass1">🔵 Class B</button>
+                            </div>
+                        </div>
+
+                        <div class="preset-buttons" style="margin-top:0.85rem;">
+                            <button class="preset-btn active" data-preset="moons">🌀 Two Moons</button>
+                            <button class="preset-btn" data-preset="circles">🎯 Concentric Circles</button>
+                            <button class="preset-btn" data-preset="spiral">🌪️ Spirals</button>
+                            <button class="preset-btn" data-preset="overlapping">💥 Overlapping</button>
+                        </div>
+                        <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+                            <button class="btn btn-outline btn-sm" id="btnClearPoints" style="width:100%; justify-content:center;">🗑️ Clear Canvas Points</button>
+                            <button class="btn btn-outline btn-sm" id="btnRandomizePoints" style="width:100%; justify-content:center;">🎲 Add Random Noise</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Controls Sidebar -->
+                <div class="rf-controls-sidebar">
+                    <div class="control-block">
+                        <h3>⚡ Forest Controls</h3>
+                        
+                        <!-- Number of Trees Slider -->
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Number of Trees ($N_{\text{estimators}}$)</span>
+                                <span class="slider-val" id="valNumTrees">15</span>
+                            </div>
+                            <input type="range" id="sliderNumTrees" min="1" max="50" value="15">
+                        </div>
+
+                        <!-- Max Tree Depth Slider -->
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Max Tree Depth ($D_{\text{max}}$)</span>
+                                <span class="slider-val" id="valMaxDepth">5</span>
+                            </div>
+                            <input type="range" id="sliderMaxDepth" min="1" max="10" value="5">
+                        </div>
+
+                        <!-- Feature Subsampling Ratio -->
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Feature Subsampling ($m / p$)</span>
+                                <span class="slider-val" id="valMaxFeatures">70%</span>
+                            </div>
+                            <input type="range" id="sliderMaxFeatures" min="30" max="100" step="10" value="70">
+                        </div>
+
+                        <!-- Split Criterion -->
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Impurity Criterion</span>
+                            </div>
+                            <select id="selectCriterion" style="width:100%; padding:0.5rem 0.75rem; border-radius:8px; background:#090d16; border:1px solid var(--border); color:var(--text-primary); font-size:0.85rem;">
+                                <option value="gini">Gini Impurity</option>
+                                <option value="entropy">Entropy Information Gain</option>
+                            </select>
+                        </div>
+
+                        <!-- Bootstrap Resampling Toggle -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
+                            <span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Bootstrap Aggregating (Bagging)</span>
+                            <input type="checkbox" id="checkBootstrap" checked style="accent-color:#34d399; width:18px; height:18px; cursor:pointer;">
+                        </div>
+
+                        <!-- Single Tree vs Ensemble Selector -->
+                        <div class="tree-select-wrapper">
+                            <label style="font-size:0.82rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:0.35rem;">Boundary View Mode:</label>
+                            <select id="selectTreeInspect">
+                                <option value="ensemble">✨ Ensemble Voting Consensus (All Trees)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics Dashboard -->
+            <div class="metrics-dashboard" style="margin-top:2rem;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Training Accuracy</span>
+                    <span class="metric-value" id="metricTrainAcc" style="color:#34d399;">96.5%</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Out-Of-Bag (OOB) Score</span>
+                    <span class="metric-value" id="metricOOBAcc" style="color:#60a5fa;">92.1%</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Active Decision Nodes</span>
+                    <span class="metric-value" id="metricActiveNodes" style="color:#a78bfa;">142</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Variance Reduction</span>
+                    <span class="metric-value" id="metricVarReduce" style="color:#fbbf24;">68.4%</span>
+                </div>
+            </div>
+
+            <!-- Playground Charts Grid -->
+            <div class="charts-grid" style="margin-top:2rem;">
+                <div class="chart-card glass-card">
+                    <h4>Accuracy Convergence vs. Number of Trees ($N$)</h4>
+                    <canvas id="chartAccuracyConvergence" height="220"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Gini Feature Importance ($X_1$ vs. $X_2$)</h4>
+                    <canvas id="chartFeatureImportance" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser · <a href="main.html">Lab Hub</a></p>
+        </div>
+    </footer>
+
+    <script src="random-forest-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

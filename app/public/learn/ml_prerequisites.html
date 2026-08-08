@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Prerequisites — Interactive Visual Guide & Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root{
+    --bg: #0F1419;
+    --panel: #161B22;
+    --panel-2: #1C232D;
+    --line: #2A3340;
+    --text: #E6EDF3;
+    --muted: #8B96A3;
+    --la: #7C8CFF;   /* linear algebra */
+    --ca: #56D8C7;   /* calculus */
+    --pr: #F2B84B;   /* probability & stats */
+    --py: #F0668C;   /* python / programming */
+    --op: #9AE07A;   /* optimization */
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --disp: 'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); line-height:1.65; font-size:16px;
+    overflow-x: hidden;
+  }
+  ::selection{background:var(--la); color:#0F1419;}
+
+  /* ---------- Top Sticky Nav ---------- */
+  nav.topnav{
+    position:sticky; top:0; z-index:50;
+    display:flex; gap:4px; overflow-x:auto;
+    background:rgba(15,20,25,0.92); backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--line);
+    padding:0 18px; align-items: center;
+  }
+  nav.topnav a{
+    color:var(--muted); text-decoration:none; font-family:var(--mono);
+    font-size:12.5px; letter-spacing:.03em; padding:14px 12px;
+    white-space:nowrap; border-bottom:2px solid transparent;
+    transition: all 0.25s ease;
+  }
+  nav.topnav a:hover{color:var(--text);}
+  nav.topnav a.la:hover, nav.topnav a.la.active{border-color:var(--la); color:var(--la);}
+  nav.topnav a.ca:hover, nav.topnav a.ca.active{border-color:var(--ca); color:var(--ca);}
+  nav.topnav a.pr:hover, nav.topnav a.pr.active{border-color:var(--pr); color:var(--pr);}
+  nav.topnav a.py:hover, nav.topnav a.py.active{border-color:var(--py); color:var(--py);}
+  nav.topnav a.op:hover, nav.topnav a.op.active{border-color:var(--op); color:var(--op);}
+
+  /* ---------- Sticky Mastery Progress Bar ---------- */
+  .mastery-sticky-bar {
+    position: sticky; top: 49px; z-index: 45;
+    background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 8px 24px; display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; font-family: var(--mono); font-size: 13px;
+  }
+  .mastery-progress-track {
+    flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;
+  }
+  .mastery-progress-fill {
+    height: 100%; width: 0%; background: linear-gradient(90deg, var(--la), var(--ca), var(--op));
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 12px rgba(124, 140, 255, 0.6);
+  }
+  .mastery-badge {
+    padding: 3px 10px; border-radius: 999px; background: rgba(124, 140, 255, 0.15);
+    color: var(--la); border: 1px solid rgba(124, 140, 255, 0.3); font-size: 12px;
+  }
+
+  /* ---------- Hero & Background Canvas ---------- */
+  header.hero{
+    position: relative;
+    padding: 64px 24px 40px; max-width: 980px; margin: 0 auto;
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+  #heroCanvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .hero-content { position: relative; z-index: 1; }
+
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; color:var(--muted);
+    letter-spacing:.12em; text-transform:uppercase; margin-bottom:14px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .eyebrow::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%; background: #34d399;
+    box-shadow: 0 0 10px #34d399; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.3); opacity:0.6;} }
+
+  h1.title{
+    font-family:var(--disp); font-size:clamp(34px,5.5vw,58px); font-weight:700;
+    margin:0 0 14px; line-height:1.05;
+    background:linear-gradient(90deg,#fff, #B9C4FF 50%, var(--la));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  p.sub{color:var(--muted); max-width:640px; font-size:17px; margin:0 0 24px;}
+
+  /* Quick Search Bar */
+  .search-wrapper {
+    margin-bottom: 24px; max-width: 480px; position: relative;
+  }
+  .search-input {
+    width: 100%; padding: 12px 16px 12px 42px; border-radius: 8px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--text); font-family: var(--mono); font-size: 13.5px;
+    outline: none; transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .search-input:focus {
+    border-color: var(--la); box-shadow: 0 0 16px rgba(124, 140, 255, 0.25);
+  }
+  .search-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 14px; pointer-events: none;
+  }
+
+  /* ---------- Roadmap Diagram ---------- */
+  .roadmap-wrap{margin-top:8px;}
+  .roadmap-wrap svg{width:100%; height:auto; display:block;}
+
+  main{max-width:980px; margin:0 auto; padding:8px 24px 120px;}
+  section{padding-top:56px; scroll-margin-top:56px;}
+  section h2{
+    font-family:var(--disp); font-size:28px; margin:0 0 6px; display:flex; align-items:center; gap:10px;
+  }
+  section h2 .dot{width:10px; height:10px; border-radius:50%;}
+  section .kicker{color:var(--muted); font-family:var(--mono); font-size:12.5px; margin-bottom:24px;}
+
+  /* ---------- Cards & Interactive Labs ---------- */
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:22px 24px; margin-bottom:22px; transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    border-color: rgba(124, 140, 255, 0.35);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 20px rgba(124, 140, 255, 0.1);
+  }
+  .card h3{font-family:var(--disp); font-size:19px; margin:0 0 10px; font-weight:600;}
+  .card p{margin:0 0 10px; color:var(--text);}
+  .card p.note{color:var(--muted); font-size:14px;}
+  .formula{
+    background:var(--panel-2); border-left:3px solid var(--la);
+    padding:12px 16px; border-radius:6px; margin:12px 0; overflow-x:auto;
+  }
+  .card.ca .formula{border-color:var(--ca);}
+  .card.pr .formula{border-color:var(--pr);}
+  .card.py .formula{border-color:var(--py);}
+  .card.op .formula{border-color:var(--op);}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media (max-width:720px){.grid2{grid-template-columns:1fr;}}
+
+  /* Interactive Lab Canvas Box */
+  .lab-box {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; margin: 16px 0; text-align: center; position: relative;
+    overflow: hidden;
+  }
+  .lab-controls {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center;
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);
+    font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+  }
+  .lab-slider-group { display: flex; align-items: center; gap: 6px; }
+  .lab-slider-group input[type="range"] {
+    accent-color: var(--la); cursor: pointer; width: 85px;
+  }
+  .lab-btn {
+    padding: 6px 14px; border-radius: 6px; font-family: var(--mono); font-size: 12px;
+    background: rgba(124, 140, 255, 0.15); color: var(--la); border: 1px solid rgba(124, 140, 255, 0.3);
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .lab-btn:hover { background: rgba(124, 140, 255, 0.3); color: #fff; transform: translateY(-1px); }
+
+  code.inline{font-family:var(--mono); background:var(--panel-2); padding:2px 6px; border-radius:4px; font-size:14px; color:var(--pr);}
+
+  table.cheat{width:100%; border-collapse:collapse; font-size:14.5px;}
+  table.cheat th, table.cheat td{
+    border-bottom:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top;
+  }
+  table.cheat th{font-family:var(--mono); color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.05em;}
+  table.cheat tr:hover td{background:rgba(255,255,255,0.02);}
+
+  .taglist{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 4px;}
+  .tag{
+    font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:20px;
+    border:1px solid var(--line); color:var(--muted);
+  }
+
+  /* Checklist Interactivity */
+  ul.checklist{list-style:none; padding:0; margin:0;}
+  ul.checklist li{
+    position:relative; padding-left:28px; margin-bottom:10px; color:var(--text);
+    transition: color 0.2s ease;
+  }
+  ul.checklist li::before{
+    content:''; position:absolute; left:0; top:4px; width:16px; height:16px;
+    border:1.5px solid var(--muted); border-radius:4px; transition: all 0.2s ease;
+  }
+  ul.checklist li.completed {
+    color: var(--muted); text-decoration: line-through;
+  }
+  ul.checklist li.completed::before {
+    background: var(--la); border-color: var(--la);
+    content: '✓'; color: #0F1419; font-weight: bold; font-size: 11px;
+    display: flex; align-items: center; justify-content: center; text-decoration: none;
+  }
+
+  a.reflink{color:var(--la); text-decoration:none; border-bottom:1px dotted var(--la);}
+  a.reflink:hover{color:#fff;}
+
+  .refcard{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    border-bottom:1px solid var(--line); padding:12px 0;
+  }
+  .refcard:last-child{border-bottom:none;}
+  .refcard .name{font-weight:600;}
+  .refcard .why{color:var(--muted); font-size:13.5px;}
+
+  /* Highlight Callouts */
+  .highlight-callout {
+    background: rgba(124, 140, 255, 0.08);
+    border-left: 4px solid var(--la);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14.5px;
+  }
+  .highlight-callout.ca { border-color: var(--ca); background: rgba(86, 216, 199, 0.08); }
+  .highlight-callout.pr { border-color: var(--pr); background: rgba(242, 184, 75, 0.08); }
+  .highlight-callout.op { border-color: var(--op); background: rgba(154, 224, 122, 0.08); }
+  .highlight-callout strong { color: #fff; display: inline-block; margin-bottom: 4px; }
+
+  /* section accent bars */
+  #linear-algebra h2 .dot{background:var(--la);}
+  #calculus h2 .dot{background:var(--ca);}
+  #probability h2 .dot{background:var(--pr);}
+  #python h2 .dot{background:var(--py);}
+  #optimization h2 .dot{background:var(--op);}
+
+  /* Reveal Animations */
+  .reveal-hidden { opacity: 0; transform: translateY(20px); transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  .reveal-active { opacity: 1; transform: translateY(0); }
+
+  footer{
+    text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px;
+    padding:40px 24px 60px; border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="/">← Hub</a>
+  <a href="main.html">Algorithms</a>
+  <a href="/quest">ML Quest</a>
+  <a href="#roadmap" class="la">◆ ROADMAP</a>
+  <a href="#python" class="py">01 · PYTHON</a>
+  <a href="#linear-algebra" class="la">02 · LINEAR ALGEBRA</a>
+  <a href="#calculus" class="ca">03 · CALCULUS</a>
+  <a href="#probability" class="pr">04 · PROBABILITY &amp; STATS</a>
+  <a href="#optimization" class="op">05 · OPTIMIZATION</a>
+  <a href="#cheatsheet" class="la">CHEAT SHEET</a>
+  <a href="#resources" class="ca">RESOURCES</a>
+</nav>
+
+<!-- Sticky Mastery Tracker Bar -->
+<div class="mastery-sticky-bar">
+  <div>🎯 <strong>Mastery:</strong> <span id="masteryPercent">0%</span></div>
+  <div class="mastery-progress-track">
+    <div class="mastery-progress-fill" id="masteryProgressBar"></div>
+  </div>
+  <div class="mastery-badge" id="masteryBadge">🚀 Beginner</div>
+</div>
+
+<header class="hero" id="roadmap">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-content">
+    <div class="eyebrow">Interactive Field Notes — Foundation before sklearn</div>
+    <h1 class="title">ML Prerequisites</h1>
+    <p class="sub">Master the core mathematics, programming habits, and intuitive frameworks before machine learning algorithms start feeling like magic. Includes interactive visual laboratories, formula cheat sheets, and practice tracking.</p>
+
+    <!-- Quick Search Bar -->
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="prereqSearchInput" class="search-input" placeholder="Search topics (e.g. Eigenvectors, Bayes, Gradient)...">
+    </div>
+
+    <div class="roadmap-wrap">
+      <svg viewBox="0 0 920 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#4A5568"/>
+          </marker>
+        </defs>
+        <!-- connective lines -->
+        <line x1="140" y1="60" x2="270" y2="60" stroke="#2A3340" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="140" y1="160" x2="270" y2="160" stroke="#2A3340" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="410" y1="60" x2="500" y2="105" stroke="#2A3340" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="410" y1="160" x2="500" y2="115" stroke="#2A3340" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="640" y1="110" x2="760" y2="110" stroke="#2A3340" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- Python node -->
+        <rect x="20" y="30" width="120" height="60" rx="10" fill="#161B22" stroke="#F0668C" stroke-width="1.5"/>
+        <text x="80" y="55" text-anchor="middle" fill="#F0668C" font-family="IBM Plex Mono" font-size="11">PYTHON &amp;</text>
+        <text x="80" y="70" text-anchor="middle" fill="#F0668C" font-family="IBM Plex Mono" font-size="11">NUMPY/PANDAS</text>
+
+        <!-- Linear Algebra -->
+        <rect x="270" y="30" width="140" height="60" rx="10" fill="#161B22" stroke="#7C8CFF" stroke-width="1.5"/>
+        <text x="340" y="55" text-anchor="middle" fill="#7C8CFF" font-family="IBM Plex Mono" font-size="11">LINEAR</text>
+        <text x="340" y="70" text-anchor="middle" fill="#7C8CFF" font-family="IBM Plex Mono" font-size="11">ALGEBRA</text>
+
+        <!-- Calculus -->
+        <rect x="270" y="130" width="140" height="60" rx="10" fill="#161B22" stroke="#56D8C7" stroke-width="1.5"/>
+        <text x="340" y="155" text-anchor="middle" fill="#56D8C7" font-family="IBM Plex Mono" font-size="11">CALCULUS &amp;</text>
+        <text x="340" y="170" text-anchor="middle" fill="#56D8C7" font-family="IBM Plex Mono" font-size="11">GRADIENTS</text>
+
+        <!-- Probability -->
+        <rect x="500" y="80" width="140" height="60" rx="10" fill="#161B22" stroke="#F2B84B" stroke-width="1.5"/>
+        <text x="570" y="105" text-anchor="middle" fill="#F2B84B" font-family="IBM Plex Mono" font-size="11">PROBABILITY</text>
+        <text x="570" y="120" text-anchor="middle" fill="#F2B84B" font-family="IBM Plex Mono" font-size="11">&amp; STATISTICS</text>
+
+        <!-- ML -->
+        <rect x="760" y="80" width="140" height="60" rx="10" fill="#161B22" stroke="#9AE07A" stroke-width="1.5"/>
+        <text x="830" y="105" text-anchor="middle" fill="#9AE07A" font-family="IBM Plex Mono" font-size="11">MACHINE</text>
+        <text x="830" y="120" text-anchor="middle" fill="#9AE07A" font-family="IBM Plex Mono" font-size="11">LEARNING</text>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= PYTHON ================= -->
+<section id="python">
+  <h2><span class="dot"></span>01 · Python &amp; Tooling</h2>
+  <div class="kicker">the language layer — get this on autopilot before the math starts costing you focus</div>
+
+  <div class="card py">
+    <h3>Core language (Click to track mastery)</h3>
+    <ul class="checklist">
+      <li>Data structures: lists, tuples, dicts, sets, and when to use each</li>
+      <li>Comprehensions: <code class="inline">[x**2 for x in range(10) if x%2==0]</code></li>
+      <li>Functions, *args/**kwargs, lambda, map/filter/reduce</li>
+      <li>Classes &amp; OOP basics — most ML libraries hand you objects (models, transformers)</li>
+      <li>File I/O, exceptions, virtual environments (venv/conda)</li>
+    </ul>
+  </div>
+
+  <div class="grid2">
+    <div class="card py">
+      <h3>NumPy essentials</h3>
+      <p>Vectorized array ops — this <em>is</em> your linear algebra engine in code.</p>
+      <div class="formula"><code class="inline">np.array, .shape, .reshape, .dot, @</code></div>
+      <div class="formula"><code class="inline">broadcasting, np.sum(axis=), np.linalg.inv</code></div>
+      <p class="note">Rule of thumb: if you're writing a Python <code class="inline">for</code> loop over an array, there's probably a vectorized NumPy call for it.</p>
+    </div>
+    <div class="card py">
+      <h3>Pandas essentials</h3>
+      <p>DataFrames for tabular data — indexing, cleaning, grouping.</p>
+      <div class="formula"><code class="inline">.loc/.iloc, groupby, merge, pivot_table</code></div>
+      <div class="formula"><code class="inline">isnull(), fillna, dropna, apply</code></div>
+      <p class="note">You already built a pandas interview-prep cheat sheet — this is just the "why" behind it.</p>
+    </div>
+  </div>
+
+  <div class="card py">
+    <h3>Visualization</h3>
+    <p><code class="inline">matplotlib</code> for control, <code class="inline">seaborn</code> for statistical plots fast. You'll use these constantly to sanity-check distributions before modeling.</p>
+  </div>
+</section>
+
+<!-- ================= LINEAR ALGEBRA ================= -->
+<section id="linear-algebra">
+  <h2><span class="dot"></span>02 · Linear Algebra</h2>
+  <div class="kicker">vectors and matrices are the data structures ML is built from</div>
+
+  <div class="highlight-callout la">
+    <strong>💡 PREREQUISITE NOTE: LINEAR ALGEBRA IN DEEP LEARNING</strong><br>
+    Every weight layer in PyTorch or TensorFlow is expressed as $y = \text{ReLU}(W^T X + b)$. Matrix multiplication allows modern GPUs to calculate millions of parameter activations concurrently in parallel.
+  </div>
+
+  <!-- Interactive Matrix Visualizer Lab -->
+  <div class="card la">
+    <h3>🧪 Interactive Lab: Matrix Space Transformation &amp; Basis Vectors</h3>
+    <p>Adjust the matrix entries $\begin{bmatrix} a & b \\ c & d \end{bmatrix}$ to see how a 2D matrix stretches, rotates, and transforms space and basis vectors $\hat{i}$ and $\hat{j}$ in real time.</p>
+    <div class="lab-box">
+      <canvas id="matrixCanvas" height="240"></canvas>
+      <div class="lab-controls">
+        <div class="lab-slider-group">
+          <span>a:</span> <input type="range" id="matA" min="-2" max="2" step="0.1" value="1.2"> <span id="valA">1.2</span>
+        </div>
+        <div class="lab-slider-group">
+          <span>b:</span> <input type="range" id="matB" min="-2" max="2" step="0.1" value="0.4"> <span id="valB">0.4</span>
+        </div>
+        <div class="lab-slider-group">
+          <span>c:</span> <input type="range" id="matC" min="-2" max="2" step="0.1" value="0.2"> <span id="valC">0.2</span>
+        </div>
+        <div class="lab-slider-group">
+          <span>d:</span> <input type="range" id="matD" min="-2" max="2" step="0.1" value="1.1"> <span id="valD">1.1</span>
+        </div>
+        <button class="lab-btn" id="resetMatrixBtn">↺ Identity</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card la">
+    <h3>Vectors</h3>
+    <p>A vector is an ordered list of numbers — a point in space, or a single data row.</p>
+    <div class="formula" id="f-vec"></div>
+    <div class="grid2">
+      <div>
+        <p><strong>Dot product</strong> (similarity / projection):</p>
+        <div class="formula" id="f-dot"></div>
+      </div>
+      <div>
+        <p><strong>Norm / magnitude</strong> (length of a vector):</p>
+        <div class="formula" id="f-norm"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card la">
+    <h3>Matrices &amp; Eigenvalues</h3>
+    <p>A matrix is a linear transformation — it rotates, scales, or projects space. Every layer of a neural net is <code class="inline">Wx + b</code>.</p>
+    <div class="grid2">
+      <div>
+        <p><strong>Matrix multiplication</strong> (A is m×n, B is n×p):</p>
+        <div class="formula" id="f-matmul"></div>
+      </div>
+      <div>
+        <p><strong>Eigenvalues &amp; Eigenvectors:</strong></p>
+        <div class="formula" id="f-eigen"></div>
+      </div>
+    </div>
+    <p class="note">In PCA: eigenvectors of the covariance matrix = principal directions of variance; eigenvalues = how much variance each direction explains.</p>
+  </div>
+
+  <div class="taglist">
+    <span class="tag">rank</span><span class="tag">determinant</span><span class="tag">identity matrix</span>
+    <span class="tag">orthogonality</span><span class="tag">SVD</span><span class="tag">trace</span>
+  </div>
+</section>
+
+<!-- ================= CALCULUS ================= -->
+<section id="calculus">
+  <h2><span class="dot"></span>03 · Calculus</h2>
+  <div class="kicker">how a model learns — the slope tells it which way to move</div>
+
+  <div class="highlight-callout ca">
+    <strong>💡 PREREQUISITE NOTE: BACKPROPAGATION &amp; THE CHAIN RULE</strong><br>
+    Deep neural networks depend on the chain rule $\frac{\partial L}{\partial W_1} = \frac{\partial L}{\partial y} \cdot \frac{\partial y}{\partial h} \cdot \frac{\partial h}{\partial W_1}$ to propagate loss gradients backwards through hundreds of layers.
+  </div>
+
+  <!-- Interactive Gradient Descent Simulation Lab -->
+  <div class="card ca">
+    <h3>🧪 Interactive Lab: Gradient Descent Loss Optimization</h3>
+    <p>Watch how parameter $\theta$ updates downhill along the negative gradient $-\alpha \nabla J(\theta)$ to minimize the loss curve $J(\theta) = \theta^2$.</p>
+    <div class="lab-box">
+      <canvas id="gdCanvas" height="240"></canvas>
+      <div class="lab-controls">
+        <div class="lab-slider-group">
+          <span>Learning Rate (α):</span>
+          <input type="range" id="gdLR" min="0.05" max="0.9" step="0.05" value="0.15">
+          <span id="valLR">0.15</span>
+        </div>
+        <button class="lab-btn" id="gdStepBtn">Step ➔</button>
+        <button class="lab-btn" id="gdAutoBtn">▶ Auto Play</button>
+        <button class="lab-btn" id="gdResetBtn">↺ Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card ca">
+    <h3>Derivatives &amp; Chain Rule</h3>
+    <p>Rate of change — how much the output moves per tiny nudge to the input.</p>
+    <div class="formula" id="f-deriv"></div>
+    <div class="grid2">
+      <div>
+        <p><strong>Chain Rule (Backpropagation):</strong></p>
+        <div class="formula" id="f-chain"></div>
+      </div>
+      <div>
+        <p><strong>Gradient Vector:</strong></p>
+        <div class="formula" id="f-grad"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROBABILITY & STATS ================= -->
+<section id="probability">
+  <h2><span class="dot"></span>04 · Probability &amp; Statistics</h2>
+  <div class="kicker">how to think about uncertainty, noise, and "is this signal real?"</div>
+
+  <div class="highlight-callout pr">
+    <strong>💡 PREREQUISITE NOTE: LOSS FUNCTIONS ARE LIKELIHOODS</strong><br>
+    Minimizing Mean Squared Error (MSE) is mathematically identical to Maximum Likelihood Estimation (MLE) assuming Gaussian noise. Minimizing Binary Cross-Entropy (BCE) is MLE under a Bernoulli distribution!
+  </div>
+
+  <!-- Interactive Gaussian Sampling Lab -->
+  <div class="card pr">
+    <h3>🧪 Interactive Lab: Normal Distribution &amp; Real-time Sampling</h3>
+    <p>Adjust Mean ($\mu$) and Standard Deviation ($\sigma$) to reshape the Gaussian density curve, then sample data points to watch the empirical histogram emerge live!</p>
+    <div class="lab-box">
+      <canvas id="gaussianCanvas" height="240"></canvas>
+      <div class="lab-controls">
+        <div class="lab-slider-group">
+          <span>Mean (μ):</span> <input type="range" id="gaussMu" min="-2" max="2" step="0.2" value="0"> <span id="valMu">0.0</span>
+        </div>
+        <div class="lab-slider-group">
+          <span>Std Dev (σ):</span> <input type="range" id="gaussSigma" min="0.5" max="2.5" step="0.1" value="1.2"> <span id="valSigma">1.2</span>
+        </div>
+        <button class="lab-btn" id="gaussSampleBtn">🎲 Sample +50</button>
+        <button class="lab-btn" id="gaussClearBtn">🗑️ Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card pr">
+      <h3>Mean, Variance, Std Dev</h3>
+      <div class="formula" id="f-mean"></div>
+      <div class="formula" id="f-var"></div>
+      <div class="formula" id="f-std"></div>
+    </div>
+    <div class="card pr">
+      <h3>Covariance &amp; Correlation</h3>
+      <div class="formula" id="f-cov"></div>
+      <div class="formula" id="f-corr"></div>
+      <p class="note">Correlation is covariance rescaled to [-1, 1] — this is why you always standardize before comparing.</p>
+    </div>
+  </div>
+
+  <div class="card pr">
+    <h3>Bayes' Theorem &amp; MLE</h3>
+    <p>The single most important formula for reasoning under uncertainty — used explicitly in Naive Bayes, and implicitly everywhere else.</p>
+    <div class="formula" id="f-bayes"></div>
+    <div class="formula" id="f-mle"></div>
+    <p class="note">MLE is the principle behind fitting almost every model — "pick parameters that make the observed data most probable."</p>
+  </div>
+</section>
+
+<!-- ================= OPTIMIZATION ================= -->
+<section id="optimization">
+  <h2><span class="dot"></span>05 · Optimization</h2>
+  <div class="kicker">turning calculus + linear algebra + a loss function into a trained model</div>
+
+  <div class="highlight-callout op">
+    <strong>💡 PREREQUISITE NOTE: CONVEXITY VS NON-CONVEXITY</strong><br>
+    Linear and Logistic Regression feature convex loss surfaces with a single global minimum. Deep Neural Networks possess complex, non-convex loss surfaces with millions of local minima and saddle points!
+  </div>
+
+  <!-- Interactive Convex vs Non-Convex Lab -->
+  <div class="card op">
+    <h3>🧪 Interactive Lab: Convex vs. Non-Convex Loss Landscapes</h3>
+    <p>Toggle between Convex (Linear/Logistic Regression) and Non-Convex (Deep Neural Networks) to compare optimization landscapes.</p>
+    <div class="lab-box">
+      <canvas id="optCanvas" height="220"></canvas>
+      <div class="lab-controls">
+        <button class="lab-btn" id="optToggleBtn">Toggle Landscape Mode</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card op">
+    <h3>The Loop Every ML Algorithm Runs</h3>
+    <div class="formula" id="f-loop"></div>
+    <ul class="checklist">
+      <li>Define a loss function — MSE for regression, cross-entropy for classification</li>
+      <li>Compute the gradient of the loss w.r.t. parameters</li>
+      <li>Update parameters a small step opposite the gradient (learning rate <code class="inline">α</code>)</li>
+      <li>Repeat until convergence</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= CHEAT SHEET ================= -->
+<section id="cheatsheet">
+  <h2><span class="dot" style="background:var(--la)"></span>Formula Cheat Sheet</h2>
+  <div class="kicker">one table, everything above, for last-minute revision</div>
+  <div class="card">
+    <table class="cheat">
+      <tr><th>Topic</th><th>Formula</th><th>Meaning</th></tr>
+      <tr><td>Dot product</td><td id="c-dot"></td><td>similarity / projection</td></tr>
+      <tr><td>Norm</td><td id="c-norm"></td><td>vector length</td></tr>
+      <tr><td>Matrix mult.</td><td id="c-matmul"></td><td>combine transformations</td></tr>
+      <tr><td>Eigenvector</td><td id="c-eigen"></td><td>invariant direction</td></tr>
+      <tr><td>Derivative</td><td id="c-deriv"></td><td>instantaneous rate of change</td></tr>
+      <tr><td>Chain rule</td><td id="c-chain"></td><td>backprop through layers</td></tr>
+      <tr><td>Gradient descent</td><td id="c-gd"></td><td>parameter update rule</td></tr>
+      <tr><td>Mean / Variance</td><td id="c-meanvar"></td><td>center &amp; spread</td></tr>
+      <tr><td>Bayes' theorem</td><td id="c-bayes"></td><td>update belief with evidence</td></tr>
+      <tr><td>Normal PDF</td><td id="c-normal"></td><td>bell curve density</td></tr>
+      <tr><td>Sigmoid</td><td id="c-sigmoid"></td><td>squashes to (0,1) — logistic regression</td></tr>
+      <tr><td>MSE loss</td><td id="c-mse"></td><td>regression error metric</td></tr>
+      <tr><td>Cross-entropy</td><td id="c-ce"></td><td>classification loss</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ================= RESOURCES ================= -->
+<section id="resources">
+  <h2><span class="dot" style="background:var(--ca)"></span>Reference Links</h2>
+  <div class="kicker">the exact sources worth your time, in order</div>
+  <div class="card">
+    <div class="refcard">
+      <div><span class="name">3Blue1Brown — Essence of Linear Algebra</span><br><span class="why">the intuition for vectors/matrices before any symbol-pushing</span></div>
+      <a class="reflink" href="https://www.3blue1brown.com/topics/linear-algebra" target="_blank">visit ↗</a>
+    </div>
+    <div class="refcard">
+      <div><span class="name">3Blue1Brown — Essence of Calculus</span><br><span class="why">derivatives/chain rule visualized</span></div>
+      <a class="reflink" href="https://www.3blue1brown.com/topics/calculus" target="_blank">visit ↗</a>
+    </div>
+    <div class="refcard">
+      <div><span class="name">Khan Academy — Linear Algebra &amp; Calculus</span><br><span class="why">structured practice problems with instant feedback</span></div>
+      <a class="reflink" href="https://www.khanacademy.org/math/linear-algebra" target="_blank">visit ↗</a>
+    </div>
+    <div class="refcard">
+      <div><span class="name">StatQuest (Josh Starmer)</span><br><span class="why">probability, statistics &amp; ML concepts explained "step by step, clearly"</span></div>
+      <a class="reflink" href="https://statquest.org/" target="_blank">visit ↗</a>
+    </div>
+    <div class="refcard">
+      <div><span class="name">Seeing Theory (Brown University)</span><br><span class="why">interactive visual intro to probability &amp; statistics</span></div>
+      <a class="reflink" href="https://seeing-theory.brown.edu/" target="_blank">visit ↗</a>
+    </div>
+    <div class="refcard">
+      <div><span class="name">Mathematics for Machine Learning (book, free PDF)</span><br><span class="why">the exact syllabus above, written out formally — by Deisenroth, Faisal, Ong</span></div>
+      <a class="reflink" href="https://mml-book.github.io/" target="_blank">visit ↗</a>
+    </div>
+    <div class="refcard">
+      <div><span class="name">NumPy / Pandas official quickstart docs</span><br><span class="why">reference while coding, not for reading cover to cover</span></div>
+      <a class="reflink" href="https://numpy.org/doc/stable/user/quickstart.html" target="_blank">visit ↗</a>
+    </div>
+    <div class="refcard">
+      <div><span class="name">Andrew Ng — Machine Learning Specialization (Coursera)</span><br><span class="why">once prerequisites feel steady, this is the natural next step</span></div>
+      <a class="reflink" href="https://www.coursera.org/specializations/machine-learning-introduction" target="_blank">visit ↗</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>ml_prerequisites.html · rendered with KaTeX · built for the road before sklearn</footer>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const put = (id, tex, display=true) => {
+    const el = document.getElementById(id);
+    if (el) katex.render(tex, el, {displayMode: display, throwOnError:false});
+  };
+
+  put('f-vec', "\\vec{v} = (v_1, v_2, \\dots, v_n)");
+  put('f-dot', "\\vec{a}\\cdot\\vec{b} = \\sum_{i=1}^{n} a_i b_i = |\\vec{a}||\\vec{b}|\\cos\\theta");
+  put('f-norm', "\\lVert \\vec{v} \\rVert_2 = \\sqrt{\\sum_{i=1}^{n} v_i^2}");
+  put('f-matmul', "(AB)_{ij} = \\sum_{k=1}^{n} A_{ik}B_{kj}");
+  put('f-eigen', "A\\vec{v} = \\lambda \\vec{v}");
+  put('f-deriv', "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h)-f(x)}{h}");
+  put('f-chain', "\\frac{dz}{dx} = \\frac{dz}{dy}\\cdot\\frac{dy}{dx}");
+  put('f-grad', "\\nabla f = \\left(\\frac{\\partial f}{\\partial x_1}, \\dots, \\frac{\\partial f}{\\partial x_n}\\right)");
+  put('f-gd', "\\theta_{t+1} = \\theta_t - \\alpha \\nabla_\\theta J(\\theta_t)");
+  put('f-mean', "\\mu = \\frac{1}{n}\\sum_{i=1}^n x_i");
+  put('f-var', "\\sigma^2 = \\frac{1}{n}\\sum_{i=1}^n (x_i - \\mu)^2");
+  put('f-std', "\\sigma = \\sqrt{\\sigma^2}");
+  put('f-cov', "\\text{Cov}(X,Y) = \\frac{1}{n}\\sum (x_i-\\mu_x)(y_i-\\mu_y)");
+  put('f-corr', "\\rho = \\frac{\\text{Cov}(X,Y)}{\\sigma_x \\sigma_y}");
+  put('f-bayes', "P(A|B) = \\frac{P(B|A)\\,P(A)}{P(B)}");
+  put('f-mle', "\\hat{\\theta}_{MLE} = \\arg\\max_{\\theta} \\prod_{i=1}^{n} P(x_i \\mid \\theta)");
+  put('f-loop', "\\theta \\leftarrow \\theta - \\alpha\\,\\nabla_\\theta\\, L(\\theta;\\,\\text{data})");
+
+  // cheat sheet (inline, non-display)
+  put('c-dot', "\\vec{a}\\cdot\\vec{b} = \\sum a_ib_i", false);
+  put('c-norm', "\\lVert v \\rVert = \\sqrt{\\sum v_i^2}", false);
+  put('c-matmul', "(AB)_{ij}=\\sum_k A_{ik}B_{kj}", false);
+  put('c-eigen', "Av=\\lambda v", false);
+  put('c-deriv', "f'(x)=\\lim_{h\\to0}\\frac{f(x+h)-f(x)}{h}", false);
+  put('c-chain', "\\frac{dz}{dx}=\\frac{dz}{dy}\\frac{dy}{dx}", false);
+  put('c-gd', "\\theta \\leftarrow \\theta - \\alpha\\nabla J(\\theta)", false);
+  put('c-meanvar', "\\mu=\\frac{1}{n}\\sum x_i,\\ \\sigma^2=\\frac{1}{n}\\sum(x_i-\\mu)^2", false);
+  put('c-bayes', "P(A|B)=\\frac{P(B|A)P(A)}{P(B)}", false);
+  put('c-normal', "\\frac{1}{\\sigma\\sqrt{2\\pi}}e^{-(x-\\mu)^2/2\\sigma^2}", false);
+  put('c-sigmoid', "\\sigma(x)=\\frac{1}{1+e^{-x}}", false);
+  put('c-mse', "\\frac{1}{n}\\sum (y_i-\\hat{y}_i)^2", false);
+  put('c-ce', "-\\sum y_i \\log(\\hat{y}_i)", false);
+
+  // active nav highlight
+  const links = document.querySelectorAll('nav.topnav a');
+  const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href')));
+  window.addEventListener('scroll', () => {
+    let idx = 0;
+    sections.forEach((s, i) => { if(s && s.getBoundingClientRect().top < 120) idx = i; });
+    links.forEach(l => l.classList.remove('active'));
+    if(links[idx]) links[idx].classList.add('active');
+  });
+});
+</script>
+<script src="ml_prerequisites-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

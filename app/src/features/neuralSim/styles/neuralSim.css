@@ -1,0 +1,281 @@
+/* ==========================================================================
+   LIVING NEURAL NETWORK SIMULATOR STYLES (SCI-FI ARTIFICIAL BRAIN THEME)
+   ========================================================================== */
+
+.neural-sim-page-wrap {
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  color: #f8fafc;
+}
+
+/* Sci-Fi Hero Header */
+.neural-sim-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 2rem 2.25rem;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(147, 51, 234, 0.25) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  flex-wrap: wrap;
+}
+
+.hero-sim-title {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.sim-avatar-pulse {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 20px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid #a855f7;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.35);
+  animation: pulseSim 3s infinite ease-in-out;
+}
+
+@keyframes pulseSim {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
+  50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(56, 189, 248, 0.5); }
+}
+
+.sim-title-text h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(90deg, #f8fafc, #c084fc, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+}
+
+.sim-title-text p {
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+  color: #94a3b8;
+}
+
+.sim-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #c084fc;
+  letter-spacing: 0.05em;
+}
+
+/* Controls Bar */
+.sim-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  flex-wrap: wrap;
+}
+
+.controls-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ctrl-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sim-select {
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  font-size: 0.82rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn.play {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border: none;
+}
+
+/* Telemetry HUD */
+.telemetry-hud-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.15rem;
+}
+
+.hud-stat-card {
+  padding: 1.15rem;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hud-stat-label { font-size: 0.68rem; font-weight: 800; color: #64748b; letter-spacing: 0.06em; }
+.hud-stat-val { font-family: 'Outfit', sans-serif; font-size: 1.65rem; font-weight: 800; }
+.hud-stat-sub { font-size: 0.72rem; color: #94a3b8; }
+
+.hud-mini-rail { width: 100%; height: 5px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; margin-top: 0.2rem; }
+.hud-mini-fill { height: 100%; border-radius: 999px; }
+
+.text-cyan { color: #38bdf8; }
+.text-rose { color: #f43f5e; }
+.text-emerald { color: #34d399; }
+.text-purple { color: #c084fc; }
+
+.bg-rose { background: linear-gradient(90deg, #f43f5e, #e11d48); }
+.bg-emerald { background: linear-gradient(90deg, #34d399, #10b981); }
+
+.failure-alert-box {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.failure-alert-box h6 { margin: 0; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 800; color: #f87171; }
+.failure-alert-box p { margin: 0; font-size: 0.8rem; color: #cbd5e1; }
+
+/* Canvas Container */
+.neural-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 540px;
+  border-radius: 24px;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.98) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.canvas-hud-header {
+  position: absolute;
+  top: 1rem;
+  left: 1.25rem;
+  right: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.neural-svg-element { width: 100%; height: 100%; }
+
+/* Drawer Inspector */
+.neuron-inspector-drawer {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 320px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 20px;
+  padding: 1.25rem;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+
+.drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.neuron-id-tag { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 800; color: #60a5fa; }
+.drawer-layer-title { font-size: 0.68rem; font-weight: 800; color: #94a3b8; letter-spacing: 0.06em; }
+
+.activation-big-box {
+  margin: 0.75rem 0;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.act-label { font-size: 0.68rem; font-weight: 800; color: #64748b; }
+.act-val { font-family: 'Outfit', sans-serif; font-size: 1.65rem; font-weight: 800; color: #38bdf8; }
+
+.param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+.param-item { padding: 0.65rem; border-radius: 10px; background: rgba(255, 255, 255, 0.03); display: flex; flex-direction: column; gap: 0.2rem; }
+.p-label { font-size: 0.65rem; font-weight: 800; color: #64748b; }
+.p-val { font-size: 0.95rem; font-weight: 800; }
+
+.weights-section h5 { margin: 0 0 0.5rem; font-size: 0.75rem; font-weight: 800; color: #94a3b8; }
+.weights-list { display: flex; flex-direction: column; gap: 0.35rem; max-height: 140px; overflow-y: auto; }
+.weight-item { display: flex; justify-content: space-between; font-size: 0.78rem; font-family: monospace; padding: 0.3rem 0.5rem; border-radius: 6px; background: rgba(255, 255, 255, 0.03); }
+
+/* Activation Explanation Banner */
+.activation-desc-card {
+  padding: 1.25rem 1.5rem;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.act-card-header { display: flex; align-items: center; justify-content: space-between; }
+.act-card-header h5 { margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 800; }
+.act-formula { font-family: monospace; font-size: 0.85rem; color: #c084fc; font-weight: 700; }
+.activation-desc-card p { margin: 0; font-size: 0.82rem; color: #94a3b8; line-height: 1.4; }
+
+@media (max-width: 768px) {
+  .neural-canvas-container { height: 420px; }
+  .sim-controls-bar { flex-direction: column; align-items: stretch; }
+}

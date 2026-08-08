@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistic Regression — Interactive Visual Guide</title>
+    <meta name="description" content="Learn Logistic Regression interactively with animated visualizations, mathematical intuition, sample datasets, and the ability to train your own binary classifier.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Ambient Background -->
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">📊</span>
+            <span>LogReg</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Machine Learning Fundamentals</p>
+                <h1 class="hero-title">
+                    <span class="title-line">LOGISTIC</span>
+                    <span class="title-line accent">REGRESSION</span>
+                </h1>
+                <p class="hero-subtitle">
+                    The go-to algorithm for binary classification — learn how machines
+                    draw decision boundaries using the sigmoid function.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary">Start Learning</a>
+                    <a href="#playground" class="btn btn-outline">Try It Yourself</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : THEORY
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Understanding</span>
+                <h2 class="section-title">What is Logistic Regression?</h2>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>The Idea</h3>
+                    <p>
+                        Logistic Regression models the <strong>probability</strong> of a
+                        binary outcome using the sigmoid function. Unlike linear regression
+                        which predicts continuous values, logistic regression outputs
+                        probabilities bounded between <strong>0 and 1</strong>.
+                    </p>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📐</div>
+                    <h3>The Sigmoid Function</h3>
+                    <p>The core transformation that maps any real number to (0, 1):</p>
+                    <div class="math-block">
+                        $$\sigma(z) = \frac{1}{1 + e^{-z}}$$
+                    </div>
+                    <p>
+                        where \(z = \beta_0 + \beta_1 x\). The output \(\sigma(z)\) represents
+                        the probability of belonging to class 1.
+                    </p>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📉</div>
+                    <h3>Cost Function</h3>
+                    <p>
+                        We minimise the <strong>Binary Cross-Entropy</strong> (Log Loss)
+                        — which penalises confident wrong predictions heavily:
+                    </p>
+                    <div class="math-block">
+                        $$J = -\frac{1}{n}\sum_{i=1}^{n}\bigl[y_i\log(\hat{p}_i) + (1-y_i)\log(1-\hat{p}_i)\bigr]$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>Gradient Descent</h3>
+                    <p>
+                        Parameters are updated iteratively using <strong>gradient descent</strong>:
+                    </p>
+                    <div class="math-block">
+                        $$\beta_j := \beta_j - \alpha \frac{\partial J}{\partial \beta_j}$$
+                    </div>
+                    <p>where the gradient is:</p>
+                    <div class="math-block">
+                        $$\frac{\partial J}{\partial \beta_j} = \frac{1}{n}\sum_{i=1}^{n}(\hat{p}_i - y_i)x_{ij}$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assumptions -->
+            <div class="assumptions glass-card">
+                <h3>🔑 Key Assumptions</h3>
+                <div class="assumptions-grid">
+                    <div class="assumption-item">
+                        <span class="assumption-num">1</span>
+                        <div>
+                            <strong>Binary Outcome</strong>
+                            <p>The dependent variable is binary (0 or 1).</p>
+                        </div>
+                    </div>
+                    <div class="assumption-item">
+                        <span class="assumption-num">2</span>
+                        <div>
+                            <strong>Independence</strong>
+                            <p>Observations are independent of each other.</p>
+                        </div>
+                    </div>
+                    <div class="assumption-item">
+                        <span class="assumption-num">3</span>
+                        <div>
+                            <strong>Linearity in Log-Odds</strong>
+                            <p>Linear relationship between features and log-odds.</p>
+                        </div>
+                    </div>
+                    <div class="assumption-item">
+                        <span class="assumption-num">4</span>
+                        <div>
+                            <strong>No Multicollinearity</strong>
+                            <p>Independent variables should not be highly correlated.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Sample Dataset & Classification</h2>
+                <p class="section-desc">
+                    Explore how logistic regression classifies binary outcomes.
+                    All computations happen live in your browser.
+                </p>
+            </div>
+
+            <!-- Dataset Selector -->
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose a dataset:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="exam">📝 Exam Score vs Pass/Fail</option>
+                    <option value="tumor">🏥 Tumor Size vs Malignant</option>
+                    <option value="churn">💳 Account Age vs Churn</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="trainSampleBtn">Train Model</button>
+            </div>
+
+            <!-- Data Table -->
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Dataset Preview</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>#</th><th>X</th><th>Y</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Metrics Dashboard -->
+            <div class="metrics-dashboard" id="sampleMetrics" style="display:none;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Accuracy</span>
+                    <span class="metric-value" id="metricAccuracy">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Precision</span>
+                    <span class="metric-value" id="metricPrecision">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Recall</span>
+                    <span class="metric-value" id="metricRecall">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">F1 Score</span>
+                    <span class="metric-value" id="metricF1">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Log Loss</span>
+                    <span class="metric-value" id="metricLogLoss">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Threshold</span>
+                    <span class="metric-value" id="metricThreshold">—</span>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid" id="sampleCharts" style="display:none;">
+                <div class="chart-card glass-card">
+                    <h4>Scatter Plot with Decision Boundary</h4>
+                    <canvas id="scatterChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Predicted Probabilities</h4>
+                    <canvas id="probChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Confusion Matrix</h4>
+                    <div id="confusionMatrixDiv"></div>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Classification Metrics</h4>
+                    <canvas id="metricsBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Experiment</span>
+                <h2 class="section-title">Try Your Own Dataset</h2>
+                <p class="section-desc">
+                    Upload a CSV file or enter data manually.
+                    The model trains entirely in your browser — no data leaves your machine.
+                </p>
+            </div>
+
+            <div class="playground-grid">
+                <!-- Input Panel -->
+                <div class="input-panel glass-card">
+                    <div class="input-tabs">
+                        <button class="tab-btn active" data-tab="csv">📁 Upload CSV</button>
+                        <button class="tab-btn" data-tab="manual">✏️ Manual Entry</button>
+                    </div>
+
+                    <!-- CSV Upload -->
+                    <div class="tab-content active" id="tab-csv">
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="upload-icon">📂</div>
+                            <p>Drag & drop a CSV file here</p>
+                            <span>or</span>
+                            <label class="btn btn-outline btn-sm" for="csvFileInput">
+                                Browse Files
+                            </label>
+                            <input type="file" id="csvFileInput" accept=".csv" hidden>
+                            <p class="upload-hint">First row should be headers. Y column must be 0 or 1.</p>
+                        </div>
+                        <div id="csvPreview" style="display:none;">
+                            <div class="column-selectors">
+                                <div class="col-select">
+                                    <label for="xColSelect">X Column (Feature)</label>
+                                    <select id="xColSelect"></select>
+                                </div>
+                                <div class="col-select">
+                                    <label for="yColSelect">Y Column (0/1 Target)</label>
+                                    <select id="yColSelect"></select>
+                                </div>
+                            </div>
+                            <div class="table-scroll" id="csvTablePreview"></div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Entry -->
+                    <div class="tab-content" id="tab-manual">
+                        <div class="manual-entry">
+                            <div class="manual-header">
+                                <div class="manual-labels">
+                                    <input type="text" id="xLabel" value="X" placeholder="X label">
+                                    <input type="text" id="yLabel" value="Y (0/1)" placeholder="Y label">
+                                </div>
+                            </div>
+                            <div class="manual-rows" id="manualRows">
+                                <!-- Rows will be added dynamically -->
+                            </div>
+                            <div class="manual-actions">
+                                <button class="btn btn-outline btn-sm" id="addRowBtn">+ Add Row</button>
+                                <button class="btn btn-outline btn-sm" id="clearRowsBtn">Clear All</button>
+                                <button class="btn btn-outline btn-sm" id="loadExampleBtn">Load Example</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg" id="trainCustomBtn">
+                        🚀 Train Model
+                    </button>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="results-panel" id="customResults" style="display:none;">
+                    <!-- Custom Metrics -->
+                    <div class="metrics-dashboard custom-metrics">
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">Accuracy</span>
+                            <span class="metric-value" id="cMetricAccuracy">—</span>
+                        </div>
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">Precision</span>
+                            <span class="metric-value" id="cMetricPrecision">—</span>
+                        </div>
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">Recall</span>
+                            <span class="metric-value" id="cMetricRecall">—</span>
+                        </div>
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">F1 Score</span>
+                            <span class="metric-value" id="cMetricF1">—</span>
+                        </div>
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">Log Loss</span>
+                            <span class="metric-value" id="cMetricLogLoss">—</span>
+                        </div>
+                        <div class="metric-card glass-card">
+                            <span class="metric-label">Threshold</span>
+                            <span class="metric-value" id="cMetricThreshold">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Custom Charts -->
+                    <div class="charts-grid custom-charts">
+                        <div class="chart-card glass-card">
+                            <h4>Scatter Plot with Decision Boundary</h4>
+                            <canvas id="cScatterChart"></canvas>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <h4>Predicted Probabilities</h4>
+                            <canvas id="cProbChart"></canvas>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <h4>Confusion Matrix</h4>
+                            <div id="cConfusionMatrixDiv"></div>
+                        </div>
+                    </div>
+
+                    <!-- Prediction Tool -->
+                    <div class="prediction-tool glass-card">
+                        <h4>🔮 Make a Prediction</h4>
+                        <div class="predict-row">
+                            <label for="predictInput">Enter X value:</label>
+                            <input type="number" id="predictInput" step="any" placeholder="e.g. 55">
+                            <button class="btn btn-primary btn-sm" id="predictBtn">Predict</button>
+                        </div>
+                        <div class="predict-result" id="predictResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser</p>
+        </div>
+    </footer>
+
+    <!-- App Script -->
+    <script src="logistic-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

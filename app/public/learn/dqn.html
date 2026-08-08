@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Q-Networks (DQN) — Interactive Visual Guide & House of Knowledge</title>
+    <meta name="description" content="Master Deep Q-Networks (DQN) Reinforcement Learning interactively with Neural Network Q-approximations, Replay Memory Buffers, Target Networks, Python code explainer, and live playgrounds.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .dqn-accent { color: #818cf8; }
+        .dqn-gradient { 
+            background: linear-gradient(135deg, #a5b4fc, #818cf8); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .dqn-btn { 
+            background: linear-gradient(135deg, #818cf8, #4f46e5) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 15px rgba(129, 140, 248, 0.35) !important;
+        }
+        .dqn-btn:hover { 
+            box-shadow: 0 6px 25px rgba(129, 140, 248, 0.5) !important; 
+            transform: translateY(-2px);
+        }
+
+        .code-container { border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); background: #060913; margin-top: 1rem; }
+        .code-header-bar { display: flex; align-items: center; justify-content: space-between; background: #0a0e1a; padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .code-dot-group { display: flex; gap: 6px; }
+        .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27c93f; }
+        .code-header-title { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-secondary); }
+
+        .code-block-interactive { background: #060913; padding: 1rem 0; font-family: var(--font-mono); font-size: 0.88rem; line-height: 1.8; color: #e6edf3; overflow-x: auto; margin: 0; }
+        .code-line { display: flex; padding: 0.25rem 1.25rem; cursor: pointer; transition: all 0.15s ease; user-select: none; border-left: 3px solid transparent; }
+        .code-line:hover, .code-line.active { background: rgba(129, 140, 248, 0.15); border-left-color: #818cf8; }
+        .code-line.locked { background: rgba(129, 140, 248, 0.28) !important; border-left: 4px solid #818cf8 !important; box-shadow: inset 0 0 12px rgba(129, 140, 248, 0.2); }
+        .line-num { width: 30px; color: #4b5563; font-size: 0.8rem; text-align: right; margin-right: 1.25rem; flex-shrink: 0; }
+        .line-content { white-space: pre; flex: 1; }
+
+        .code-step-selector { display: flex; gap: 0.5rem; margin-top: 1.25rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .code-tab-btn { padding: 0.5rem 0.85rem; border-radius: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .code-tab-btn:hover, .code-tab-btn.active { background: rgba(129, 140, 248, 0.15); border-color: rgba(129, 140, 248, 0.4); color: #818cf8; }
+
+        .code-explanation-panel { padding: 1.5rem; border-radius: 12px; background: rgba(17, 24, 39, 0.7); border: 1px solid rgba(129, 140, 248, 0.3); margin-top: 0.5rem; }
+        .explain-line-badge { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #818cf8; background: rgba(129, 140, 248, 0.15); padding: 0.25rem 0.75rem; border-radius: 50px; display: inline-block; margin-bottom: 0.5rem; transition: all 0.2s ease; }
+        .explain-header h4 { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin: 0 0 0.5rem 0; }
+        .explain-body { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 0.85rem; }
+        .explain-math-box { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.85rem 1rem; color: #818cf8; font-family: var(--font-mono); font-size: 0.9rem; }
+
+        .code-keyword { color: #ff7b72; font-weight: 600; }
+        .code-func { color: #d2a8ff; }
+        .code-comment { color: #8b949e; font-style: italic; }
+        .code-string { color: #a5d6ff; }
+        .code-num { color: #79c0ff; }
+
+        .comp-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.88rem; }
+        .comp-table th, .comp-table td { padding: 0.85rem 1.1rem; border: 1px solid var(--border); text-align: left; }
+        .comp-table th { background: rgba(129, 140, 248, 0.12); color: #818cf8; font-weight: 700; }
+        .comp-table td { color: var(--text-secondary); }
+
+        .faq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 1.25rem; }
+        .faq-card { padding: 1.25rem; border-radius: var(--radius-sm); background: rgba(17, 24, 39, 0.6); border: 1px solid var(--border); }
+        .faq-card h4 { margin: 0 0 0.5rem; font-size: 0.98rem; color: #818cf8; }
+        .faq-card p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+        #heroCanvas { border-radius: var(--radius); background: rgba(17, 24, 39, 0.5); border: 1px solid var(--border); }
+
+        .dqn-lab-wrapper { display: flex; gap: 2rem; align-items: stretch; flex-wrap: wrap; }
+        .dqn-canvas-panel { flex: 1; min-width: 340px; display: flex; flex-direction: column; gap: 1rem; }
+        .dqn-canvas-container { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: rgba(17, 24, 39, 0.65); }
+        .dqn-canvas-container canvas { display: block; width: 100%; cursor: crosshair; }
+        .canvas-tooltip {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 0.78rem; font-weight: 600; color: #ffffff;
+            background: rgba(10, 14, 26, 0.85); padding: 0.4rem 1rem; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); pointer-events: none; display: flex; align-items: center; gap: 0.5rem;
+        }
+        .dqn-controls-sidebar { width: 330px; min-width: 290px; }
+
+        .control-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; backdrop-filter: blur(16px); }
+        .control-block h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+
+        .slider-group { margin-bottom: 1.25rem; }
+        .slider-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .slider-val { font-family: var(--font-mono); color: #818cf8; font-weight: 700; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); outline: none; accent-color: #818cf8; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- Background Animated Neural Mesh Canvas -->
+    <canvas id="neuralBgCanvas" style="position:fixed; inset:0; z-index:-2; pointer-events:none;"></canvas>
+
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🧠</span>
+            <span>Deep Q-Networks (DQN)</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#theory">Theory & Knowledge</a></li>
+            <li><a href="#faq">Interview & Guidelines</a></li>
+            <li><a href="#code">Python Code Explainer</a></li>
+            <li><a href="#sample">Sample Data</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/quest">ML Quest</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 : HERO — Animated Header
+    ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Reinforcement Learning · Deep Q-Learning</p>
+                <h1 class="hero-title">
+                    <span class="title-line">DEEP Q-NETWORKS</span>
+                    <span class="title-line dqn-gradient">(DQN) CONTROL</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Master Neural Network Q-approximators — from Experience Replay Buffers and Target Networks ($\theta^-$) to stabilizing Deep Mind Atari-scale reinforcement learning.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary dqn-btn">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try CartPole Below ↓</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="380"></canvas>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 : HOUSE OF KNOWLEDGE (THEORY & MATH)
+    ═══════════════════════════════════════════ -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Mathematical Foundations</span>
+                <h2 class="section-title">Deep Q-Networks: The House of Knowledge</h2>
+                <p class="section-desc">
+                    Master neural network function approximation, experience replay memory, and frozen target networks.
+                </p>
+            </div>
+
+            <!-- Beginner Intuition & ELI5 Analogy Card -->
+            <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(129, 140, 248, 0.3); padding: 1.75rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">💡</span>
+                    <h3 style="margin:0; font-size:1.25rem; color:#818cf8;">Deep Q-Networks for Beginners (Explain Like I'm 5)</h3>
+                </div>
+                <p style="color:var(--text-secondary); line-height:1.7; font-size:0.95rem; margin-bottom:1.25rem;">
+                    When an AI plays video games (like Atari Breakout), there are millions of possible pixel screens! A simple Q-table would run out of RAM memory. 
+                    <strong>DQN replaces the giant Q-table with a Neural Network brain that predicts Q-values from raw images, using a Replay Memory to study past mistakes over and over!</strong>
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#818cf8; font-weight:700;">🧠 1. Neural Q-Approximator</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Takes screen pixels as input and predicts expected Q-value scores for all actions (Left, Right, Fire) at once!</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#34d399; font-weight:700;">📼 2. Experience Replay Buffer</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Saves thousands of past transitions $(s, a, r, s')$ into a memory buffer and samples random mini-batches to break temporal correlations.</p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                        <span style="color:#fbbf24; font-weight:700;">❄️ 3. Frozen Target Network</span>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem; line-height:1.5;">Freezes a copy of network weights $\theta^-$ to compute target rewards, preventing the neural network from chasing a moving target!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="theory-grid">
+                <!-- 1. Deep Q Loss -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>1. DQN Loss Function</h3>
+                    <p>
+                        Minimizes squared Temporal Difference error over mini-batch sample $\mathcal{D}$:
+                    </p>
+                    <div style="background:rgba(129,140,248,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(129,140,248,0.25); color:#818cf8; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$L(\theta) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}} \left[ \left( r + \gamma \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta) \right)^2 \right]$$
+                    </div>
+                </div>
+
+                <!-- 2. Experience Replay -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">📼</div>
+                    <h3>2. Experience Replay Memory</h3>
+                    <p>
+                        Breaks sample autocorrelation by storing transitions $e_t = (s_t, a_t, r_t, s_{t+1})$ in memory buffer $\mathcal{D}$:
+                    </p>
+                    <div style="background:rgba(52,211,153,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(52,211,153,0.25); color:#34d399; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\mathcal{D} = \{ e_1, e_2, \dots, e_N \}, \quad (s,a,r,s') \sim \text{Uniform}(\mathcal{D})$$
+                    </div>
+                </div>
+
+                <!-- 3. Target Network Synchronization -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">❄️</div>
+                    <h3>3. Target Network Update</h3>
+                    <p>
+                        Target parameters $\theta^-$ remain frozen for $C$ steps, then update via copy or soft Polyak averaging:
+                    </p>
+                    <div style="background:rgba(96,165,250,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(96,165,250,0.25); color:#60a5fa; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$\theta^- \leftarrow \tau \theta + (1 - \tau) \theta^- \quad (\tau \ll 1)$$
+                    </div>
+                </div>
+
+                <!-- 4. Double DQN Fix -->
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>4. Double DQN Overestimation Fix</h3>
+                    <p>
+                        Decouples action selection from action evaluation to eliminate positive maximization bias:
+                    </p>
+                    <div style="background:rgba(251,191,36,0.1); padding:0.85rem 1rem; border-radius:10px; border:1px solid rgba(251,191,36,0.25); color:#fbbf24; font-family:var(--font-mono); font-size:0.95rem; margin-top:0.75rem;">
+                        $$Y_t^{\text{DoubleDQN}} = R_{t+1} + \gamma Q\left(S_{t+1}, \arg\max_a Q(S_{t+1}, a; \theta_t); \theta_t^-\right)$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why does DQN fail without Experience Replay?</h4>
+                        <p>Sequential RL states are highly correlated ($s_{t+1}$ depends directly on $s_t$). Training neural networks on correlated data violates the i.i.d. assumption, causing catastrophic network divergence.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: What problem does the Target Network solve?</h4>
+                        <p>In standard Q-learning with neural networks, updating $\theta$ changes both $Q(s,a;\theta)$ AND target $Q(s',a';\theta)$, creating severe non-stationarity. Freezing $\theta^-$ stabilizes target calculation.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: DQN vs Dueling DQN?</h4>
+                        <p>Dueling DQN decomposes Q-value into state value $V(s)$ and advantage $A(s,a)$: $Q(s,a) = V(s) + (A(s,a) - \frac{1}{|A|}\sum A(s,a'))$.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Computational Complexity Summary</h4>
+                        <p><strong>Forward/Backward Pass:</strong> $\mathcal{O}(M \cdot L)$ for mini-batch $M$ & layers $L$.<br><strong>Memory Buffer:</strong> $\mathcal{O}(N \cdot |S|)$ RAM space.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: DQN vs Double DQN vs Dueling DQN</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Architecture Variant</th>
+                            <th>Overestimation Handling</th>
+                            <th>Sample Efficiency</th>
+                            <th>Best Used For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Standard DQN</strong></td>
+                            <td>Single Q-Network + Target Net</td>
+                            <td>Susceptible to overestimation</td>
+                            <td>Moderate</td>
+                            <td>Classic Atari games & discrete control benchmark.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Double DQN</strong></td>
+                            <td>Decoupled Selection/Evaluation</td>
+                            <td>Eliminates Max-Bias</td>
+                            <td>High</td>
+                            <td>Environments with noisy rewards & large action spaces.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dueling DQN</strong></td>
+                            <td>Split Value $V(s)$ & Advantage $A(s,a)$</td>
+                            <td>Robust Value Estimation</td>
+                            <td>Very High</td>
+                            <td>Games where many actions don't impact immediate outcome.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / PyTorch Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(129,140,248,0.15); border:1px solid #818cf8; color:#818cf8; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">dqn_cartpole.py • Python 3.11</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Q-Network & Replay Buffer (L1–7)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Epsilon Action Selection (L8–12)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Mini-Batch Loss & SGD (L13–18)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Target Net Sync (L19–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel">
+                    <div>
+                        <div class="explain-header">
+                            <span class="explain-line-badge" id="explainLineBadge">Line 4</span>
+                            <h4 id="explainTitle">DQN Network Architecture</h4>
+                        </div>
+                        <p class="explain-body" id="explainBody">
+                            Hover or click any line of code above to inspect its line-by-line breakdown.
+                        </p>
+                    </div>
+                    <div class="explain-math-box" id="explainMathBox">
+                        $$Q(s, a; \theta): \mathbb{R}^4 \to \mathbb{R}^2$$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 : SAMPLE DATASET & DEMO
+    ═══════════════════════════════════════════ -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Live Demonstration</span>
+                <h2 class="section-title">Sample Environment Training & Neural Fit</h2>
+                <p class="section-desc">
+                    Explore how Deep Q-Networks balance pole angle dynamics on CartPole-v1 in real time.
+                </p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose a continuous state environment:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="cartpole">🕹️ CartPole-v1 (4D Continuous State Space)</option>
+                    <option value="mountaincar">🏎️ MountainCar-v0 (Momentum Hill Climb)</option>
+                    <option value="lunar">🚀 LunarLander-v2 (Lander Thruster Control)</option>
+                </select>
+                <button class="btn btn-primary btn-sm dqn-btn" id="trainSampleBtn">Train DQN Agent</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Mini-Batch Replay Buffer Transitions</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>#</th><th>State (Cart Pos, Vel, Angle, VelAtTip)</th><th>Action</th><th>Reward</th><th>Next State</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics" style="display:none;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Episodes Trained</span>
+                    <span class="metric-value" id="sampleMetricEpisodes" style="color:#818cf8;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Average Return</span>
+                    <span class="metric-value" id="sampleMetricReturn" style="color:#34d399;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">MSE Loss</span>
+                    <span class="metric-value" id="sampleMetricLoss" style="color:#60a5fa;">—</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Buffer Size</span>
+                    <span class="metric-value" id="sampleMetricBuffer" style="color:#fbbf24;">—</span>
+                </div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts" style="display:none;">
+                <div class="chart-card glass-card">
+                    <h4>CartPole Episode Score Curve</h4>
+                    <canvas id="sampleScatterChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Neural MSE Loss Reduction</h4>
+                    <canvas id="sampleConvergenceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4 : PLAYGROUND — Try Your Own
+    ═══════════════════════════════════════════ -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Visual Simulation</span>
+                <h2 class="section-title">CartPole-v1 DQN Simulation Playground</h2>
+                <p class="section-desc">
+                    Watch a live Neural Network DQN Agent balance a pole on a moving cart! Adjust neural learning rates, replay buffer sizes, and target sync steps.
+                </p>
+            </div>
+
+            <div class="dqn-lab-wrapper">
+                <div class="dqn-canvas-panel">
+                    <div class="dqn-canvas-container">
+                        <canvas id="dqnCanvas" width="600" height="460"></canvas>
+                        <div class="canvas-tooltip" id="canvasTooltip">
+                            <span>Cart Position: 0.00 | Pole Angle: 0.0°</span>
+                            <span>•</span>
+                            <span style="color:#818cf8;" id="statusLabel">Status: Ready</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="padding:1.25rem;">
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-primary dqn-btn" id="btnStepEpisode" style="width:100%; justify-content:center;">⏯️ Step 1 Episode</button>
+                            <button class="btn btn-outline btn-sm" id="btnTrainFast" style="width:100%; justify-content:center;">🚀 Train 30 Episodes</button>
+                            <button class="btn btn-outline btn-sm" id="btnResetDQN" style="width:100%; justify-content:center;">🗑️ Reset Network</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dqn-controls-sidebar">
+                    <div class="control-block">
+                        <h3>⚡ DQN Neural Hyperparameters</h3>
+                        
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Learning Rate ($\eta$)</span>
+                                <span class="slider-val" id="valLR">0.001</span>
+                            </div>
+                            <input type="range" id="sliderLR" min="0.0001" max="0.01" step="0.0005" value="0.001">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Batch Size</span>
+                                <span class="slider-val" id="valBatch">32</span>
+                            </div>
+                            <input type="range" id="sliderBatch" min="8" max="128" step="8" value="32">
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span>Target Sync Steps ($C$)</span>
+                                <span class="slider-val" id="valSync">20</span>
+                            </div>
+                            <input type="range" id="sliderSync" min="5" max="100" value="20">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" style="margin-top:2rem;">
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Episodes Completed</span>
+                    <span class="metric-value" id="metricEpisodes" style="color:#818cf8;">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Latest Pole Balance Score</span>
+                    <span class="metric-value" id="metricScore" style="color:#34d399;">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Replay Memory Count</span>
+                    <span class="metric-value" id="metricMemory" style="color:#60a5fa;">0</span>
+                </div>
+                <div class="metric-card glass-card">
+                    <span class="metric-label">Neural MSE Loss</span>
+                    <span class="metric-value" id="metricLoss" style="color:#fbbf24;">0.00</span>
+                </div>
+            </div>
+
+            <div class="charts-grid" style="margin-top:2rem;">
+                <div class="chart-card glass-card">
+                    <h4>CartPole Balance Score Progress</h4>
+                    <canvas id="chartScore" height="220"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Neural Loss Reduction</h4>
+                    <canvas id="chartLoss" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ for learning · All computations run locally in your browser · <a href="main.html">Lab Hub</a></p>
+        </div>
+    </footer>
+
+    <script src="dqn-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>

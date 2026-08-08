@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BERT & Masked Autoencoders (MAE) — Into the Algorithm</title>
+    <meta name="description" content="Explore Masked Language Modeling (MLM) and Masked Autoencoders (MAE) with 75% patch masking ratios, Transformer Encoders, PyTorch code explainer, and real-time reconstruction labs.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1" style="background: radial-gradient(circle, #10b981 0%, transparent 70%);"></div>
+        <div class="orb orb-2" style="background: radial-gradient(circle, #06b6d4 0%, transparent 70%);"></div>
+        <div class="orb orb-3" style="background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);"></div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <a href="main.html" class="back-link">← All Algorithms</a>
+        <div class="nav-brand">
+            <span class="nav-icon">🧩</span>
+            <span>BERT & MAE</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Overview</a></li>
+            <li><a href="#theory">Theory</a></li>
+            <li><a href="#code">Python Code</a></li>
+            <li><a href="#sample">Sample Dataset</a></li>
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="/">Hub</a></li>
+        </ul>
+    </nav>
+
+    <!-- SECTION 1: HERO OVERVIEW -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-tag">Masked Self-Supervised Learning</p>
+                <h1 class="hero-title">
+                    <span class="title-line">BERT & MASKED</span>
+                    <span class="title-line accent" style="background: linear-gradient(135deg, #10b981, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">AUTOENCODERS (MAE)</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Mask up to 75% of input tokens or image patches, process unmasked patches efficiently with Transformer encoders, and reconstruct missing pixels via lightweight decoders.
+                </p>
+                <div class="hero-cta">
+                    <a href="#theory" class="btn btn-primary">House of Knowledge</a>
+                    <a href="#playground" class="btn btn-outline">Try Playground</a>
+                </div>
+            </div>
+            <div class="hero-animation">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: HOUSE OF KNOWLEDGE & THEORY -->
+    <section class="section theory-section" id="theory">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">01 — Theory & Foundations</span>
+                <h2 class="section-title">House of Knowledge</h2>
+                <p class="section-desc">Masking ratios, asymmetric encoder-decoder architectures, and pixel-level MSE reconstruction losses.</p>
+            </div>
+
+            <div class="theory-grid">
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎭</div>
+                    <h3>1. High Ratio Patch Masking (\(\rho\))</h3>
+                    <p>Randomly drops a high ratio (\(\rho = 75\%\) for MAE, \(\rho = 15\%\) for BERT) of input patches \(\mathbf{x}_m\) leaving unmasked set \(\mathbf{x}_vis\):</p>
+                    <div class="math-block">
+                        $$\mathbf{x}_{vis} \subset \mathbf{x}, \quad |\mathbf{x}_{vis}| = (1 - \rho) |\mathbf{x}|$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">⚡</div>
+                    <h3>2. Asymmetric Transformer Encoder</h3>
+                    <p>Heavy ViT encoder processes <em>only</em> visible unmasked patches \(\mathbf{x}_{vis}\), reducing compute costs by \(4\times\):</p>
+                    <div class="math-block">
+                        $$\mathbf{z}_{vis} = \text{Encoder}(\mathbf{x}_{vis} + \mathbf{e}_{vis})$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🧩</div>
+                    <h3>3. Mask Token Insertion & Decoder</h3>
+                    <p>Shared learnable mask tokens \(\mathbf{m}\) are padded into latent representations before lightweight ViT decoder reconstruction:</p>
+                    <div class="math-block">
+                        $$\hat{\mathbf{x}} = \text{Decoder}([\mathbf{z}_{vis}; \mathbf{m}] + \mathbf{e}_{full})$$
+                    </div>
+                </div>
+
+                <div class="theory-card glass-card">
+                    <div class="card-icon">🎯</div>
+                    <h3>4. Normalized Pixel MSE Loss</h3>
+                    <p>Reconstruction loss is evaluated exclusively over masked patch pixels \(\mathbf{x}_m\) using normalized pixel target values:</p>
+                    <div class="math-block">
+                        $$\mathcal{L}_{MAE} = \frac{1}{|M|} \sum_{i \in M} \|\hat{x}_i - x_{norm, i}\|_2^2$$
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" id="faq" style="margin-top:2rem;">
+                <h3>💡 Interview & Production Guidelines</h3>
+                <div class="faq-grid">
+                    <div class="faq-card">
+                        <h4>Q: Why does MAE require 75% masking vs BERT's 15%?</h4>
+                        <p>Images possess high spatial redundancy. Low masking ratios (e.g. 15%) allow easy linear interpolation from adjacent pixels. 75% masking forces the model to learn holistic high-level semantic structures.</p>
+                    </div>
+                    <div class="faq-card">
+                        <h4>Q: Why normalize target patch pixels per patch?</h4>
+                        <p>Normalizing patch mean and variance (\(\mu=0, \sigma=1\)) enhances local contrast representation learning and prevents global illumination bias from dominating loss.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top:2rem;">
+                <h3>📊 Algorithmic Comparison: BERT vs MAE vs Standard ViT</h3>
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Domain & Token Input</th>
+                            <th>Masking Ratio (\(\rho\))</th>
+                            <th>Encoder Compute Focus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>BERT</strong></td>
+                            <td>Text Subwords (WordPiece)</td>
+                            <td>15% ([MASK] tokens)</td>
+                            <td>Full sequence (Including [MASK])</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Masked Autoencoder (MAE)</strong></td>
+                            <td>Vision 16x16 Patches</td>
+                            <td>75% (Random Patch Removal)</td>
+                            <td>Visible patches only (25% tokens)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Supervised ViT</strong></td>
+                            <td>Vision 16x16 Patches</td>
+                            <td>0% (Full Image Input)</td>
+                            <td>Full sequence (100% tokens)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SECTION 3: INTERACTIVE LINE-BY-LINE CODE EXPLAINER -->
+            <div class="glass-card" id="code" style="margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h3>💻 Python / PyTorch Implementation & Line Explainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">Click any line to <strong>lock selection</strong>. Hover over lines to preview step breakdowns.</p>
+                    </div>
+                    <button id="btnUnlockLine" style="display:none; background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:0.4rem 0.85rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer;">🔓 Clear Lock</button>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header-bar">
+                        <div class="code-dot-group">
+                            <span class="code-dot red"></span>
+                            <span class="code-dot yellow"></span>
+                            <span class="code-dot green"></span>
+                        </div>
+                        <div class="code-header-title">mae_vit_pytorch.py • PyTorch 2.1</div>
+                        <button class="copy-code-btn" id="btnCopyCode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#ffffff; padding:0.35rem 0.85rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono); cursor:pointer;">📋 Copy Code</button>
+                    </div>
+
+                    <div class="code-block-interactive" id="codeBlockInteractive"></div>
+                </div>
+
+                <div class="code-step-selector">
+                    <button class="code-tab-btn active" data-step="step1">1. Random Masking (L1–6)</button>
+                    <button class="code-tab-btn" data-step="step2">2. Encoder Pass (L7–11)</button>
+                    <button class="code-tab-btn" data-step="step3">3. Mask Insertion (L12–17)</button>
+                    <button class="code-tab-btn" data-step="step4">4. Reconstruction Loss (L18–22)</button>
+                </div>
+
+                <div class="code-explanation-panel glass-card" id="codeExplainPanel"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: SAMPLE DATASET & DEMO -->
+    <section class="section sample-section" id="sample">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">02 — Demonstration</span>
+                <h2 class="section-title">Sample Dataset & Model Fit</h2>
+                <p class="section-desc">Observe patch reconstruction MSE loss across pretraining epochs.</p>
+            </div>
+
+            <div class="dataset-selector glass-card">
+                <label for="sampleDatasetSelect">Choose Pretraining Set:</label>
+                <select id="sampleDatasetSelect">
+                    <option value="imagenet">🖼️ ImageNet-1k Patches (75% Masked)</option>
+                    <option value="coco">📷 COCO Validation Images</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="trainSampleBtn">Train Epoch</button>
+            </div>
+
+            <div class="data-table-wrapper glass-card">
+                <h3>📋 Masked Patch Reconstruction Table</h3>
+                <div class="table-scroll">
+                    <table id="sampleTable">
+                        <thead><tr><th>Image #</th><th>Masked Patches</th><th>Visible Patches</th><th>Patch Normalization</th><th>MSE Loss</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="metrics-dashboard" id="sampleMetrics">
+                <div class="metric-card glass-card"><span class="metric-label">Epoch</span><span class="metric-value" id="metricEpoch">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Reconstruction MSE</span><span class="metric-value" id="metricMSE">—</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Mask Ratio</span><span class="metric-value" id="metricRatio">75%</span></div>
+                <div class="metric-card glass-card"><span class="metric-label">Finetune Acc</span><span class="metric-value" id="metricAcc">—</span></div>
+            </div>
+
+            <div class="charts-grid" id="sampleCharts">
+                <div class="chart-card glass-card">
+                    <h4>Reconstruction MSE vs Masking Ratio</h4>
+                    <canvas id="chartRatio"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h4>Downstream ImageNet Finetuning Accuracy</h4>
+                    <canvas id="chartFine"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: INTERACTIVE VISUAL PLAYGROUND -->
+    <section class="section playground-section" id="playground">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">03 — Interactive Lab</span>
+                <h2 class="section-title">MAE Image Patch Reconstruction Lab</h2>
+                <p class="section-desc">Adjust masking ratio slider, click patches to manually mask/unmask, and trigger Transformer decoder reconstruction in real-time.</p>
+            </div>
+
+            <div class="playground-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:1.5rem;">
+                <div class="glass-card" style="padding:1rem;">
+                    <canvas id="maeCanvas" width="512" height="512" style="width:100%; border-radius:10px; background:#0b0f19; cursor:pointer;"></canvas>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">Click any 16x16 patch to toggle mask.</span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-sm btn-outline" id="btnReconstruct">⚡ Reconstruct Patches</button>
+                            <button class="btn btn-sm btn-outline" id="btnResetPlayground">🔄 Random Mask (75%)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding:1.25rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem;">Control Panel</h3>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                            <span>Masking Ratio (\(\rho\)):</span>
+                            <span id="valRatio" style="font-weight:700; color:#10b981;">75%</span>
+                        </div>
+                        <input type="range" id="sliderRatio" min="15" max="90" step="5" value="75" style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Sample Images:</label>
+                        <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.35rem;">
+                            <button class="btn btn-sm btn-outline preset-btn" data-img="cat">🐱 Cat Portrait</button>
+                            <button class="btn btn-sm btn-outline preset-btn" data-img="car">🚗 Sports Car</button>
+                            <button class="btn btn-sm btn-outline preset-btn" data-img="nature">🌲 Forest Landscape</button>
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(0,0,0,0.3); padding:0.85rem; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Visible Tokens: <strong id="lblVisible" style="color:#10b981;">16 / 64</strong></div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">Reconstruction MSE: <strong id="lblMSE" style="color:#06b6d4;">0.018</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container" style="text-align:center; padding:2rem 0; color:var(--text-secondary); font-size:0.85rem;">
+            Into the Algorithm • BERT & Masked Autoencoders (MAE) Visual Guide
+        </div>
+    </footer>
+
+    <script src="bert-mae-app.js"></script>
+    <script src="lab-motion.js"></script>
+</body>
+</html>
